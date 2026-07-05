@@ -66,10 +66,25 @@ namespace vsid
 		// Access:    public 
 		// Returns:   std::string
 		// Qualifier:
-		// Parameter: std::chrono::system_clock::time_point tp
+		// Parameter: const std::chrono::time_point<T
+		// Parameter: U> & tp
 		// Parameter: std::string_view fmtStr
 		//************************************
-		std::string getFormattedTime(std::chrono::system_clock::time_point tp = std::chrono::system_clock::now(), std::string_view fmtStr = "%Y-%m-%d %H:%M:%S");
+		template<typename T, typename U>
+		std::string getFormattedTime(const std::chrono::time_point<T, U>& tp, std::string_view fmtStr = "%Y-%m-%d %H:%M:%S")
+		{
+			auto sysTp = std::chrono::clock_cast<std::chrono::system_clock>(tp);
+
+			std::time_t time = std::chrono::system_clock::to_time_t(sysTp);
+			std::tm tm{};
+			gmtime_s(&tm, &time);
+
+			std::array<char, 64> timeBuffer;
+
+			if (std::strftime(timeBuffer.data(), timeBuffer.size(), fmtStr.data(), &tm) > 0) return std::string(timeBuffer.data());
+
+			return "TIME_ERROR";
+		}
 
 		//************************************
 		// Description: Caches timezone and provides fallback if timezone unavailable
@@ -136,9 +151,24 @@ namespace vsid
 			return std::string(std::format("{:%Y.%m.%d %H:%M:%S}", timePoint));
 		}
 
+		//************************************
+		// Description: Transform a timepoint into a time string
+		// Method:    toTimeString
+		// FullName:  vsid::time::toTimeString
+		// Access:    public 
+		// Returns:   std::string
+		// Qualifier:
+		// Parameter: const std::chrono::time_point<T
+		// Parameter: U> & timePoint
+		//************************************
 		template<typename T, typename U>
 		std::string toTimeString(const std::chrono::time_point<T, U>& timePoint)
 		{
+			if (vsid::utils::usingWine())
+			{
+				return vsid::time::getFormattedTime(timePoint, "%H:%M:%S");
+			}
+
 			return std::string(std::format("{:%H:%M:%S}", timePoint));
 		}
 	}
