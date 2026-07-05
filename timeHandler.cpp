@@ -26,16 +26,3 @@ bool vsid::time::isActive(const std::string& timezone, const int start, const in
 	}
 	return false;
 }
-
-std::string vsid::time::getFormattedTime(std::chrono::system_clock::time_point tp, std::string_view fmtStr)
-{
-	std::time_t time = std::chrono::system_clock::to_time_t(tp);
-	std::tm tm{};
-	gmtime_s(&tm, &time);
-
-	std::array<char, 64> timeBuffer;
-
-	if (std::strftime(timeBuffer.data(), timeBuffer.size(), fmtStr.data(), &tm) > 0) return std::string(timeBuffer.data());
-
-	return "TIME_ERROR";
-}

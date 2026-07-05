@@ -3847,10 +3847,10 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 
 						std::string atcList;
 						bool first = true;
-						for (const auto& [_, controller] : airport.controllers)
+						for (const auto& [atcCallsign, controller] : airport.controllers)
 						{
 							if (!first) atcList += " | ";
-							atcList += controller.si;
+							atcList += std::format("{} ({})", atcCallsign, controller.si);
 							first = false;
 						}
 						vsid::Logger::log(LogLevel::Debug, std::format("[{}] Own ATC Facility: {}. Own ATC ICAO: {}. "
@@ -3893,7 +3893,7 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 				}
 				else vsid::Logger::log(LogLevel::Info, "No new automode. Check .vsid auto status for active ones.");
 			}
-			else if (cmd.params.size() == 1)
+			else if (cmd.params.size() >= 1)
 			{
 				// string populating with apt states and delimiter for non-first entries
 				bool first = true;
@@ -3915,21 +3915,20 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 						vsid::Logger::log(LogLevel::Info, autoList);
 					else
 						vsid::Logger::log(LogLevel::Info, "No active automode.");
+
+					return true;
 				}
-				else if (vsid::utils::svEqualCi(cmd.params[0], "off"))
+
+				if (vsid::utils::svEqualCi(cmd.params[0], "off"))
 				{
 					for (auto& [icao, airport] : this->activeAirports)
 					{
 						airport.settings["auto"] = false;
 					}
 					vsid::Logger::log(LogLevel::Info, "Automode OFF for all airports.");
+
+					return true;
 				}
-			}
-			else if (cmd.params.size() > 1)
-			{
-				// string populating with apt states and delimiter for non-first entries
-				bool first = true;
-				std::string autoList;
 
 				for (const auto& param : cmd.params)
 				{
@@ -3940,7 +3939,7 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 
 						if (myFacility >= 2 && myFacility <= 4 && !vsid::utils::svEqualCi(atcIcao, param))
 						{
-							vsid::Logger::log(LogLevel::Debug, std::format("[{}] Skipping force auto mode because own ATC ICAO does not match", param),
+							vsid::Logger::log(LogLevel::Debug, std::format("[{}] Skipping (force) auto mode because own ATC ICAO does not match", param),
 								vsid::DebugLevel::Atc);
 
 							continue;
@@ -3948,7 +3947,7 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 
 						if (myFacility > 4 && !airport.appSI.contains(atcSI) && !vsid::utils::svEqualCi(atcIcao, param))
 						{
-							vsid::Logger::log(LogLevel::Debug, std::format("[{}] Skipping force auto mode because own SI is not in apt appSI or "
+							vsid::Logger::log(LogLevel::Debug, std::format("[{}] Skipping (force) auto mode because own SI is not in apt appSI or "
 								"own ATC ICAO does not match", param), vsid::DebugLevel::Atc);
 
 							continue;
@@ -4513,6 +4512,9 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 
 			return true;
 		}
+
+		vsid::Logger::log(LogLevel::Info, std::format("Unknown command [{}].", cmd.command));
+		return false;
 	}
 
 	vsid::Logger::log(LogLevel::Warning, std::format("Failed to parse command [{}]. It is probably invalid.", sCommandLine));
@@ -4523,6 +4525,7 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 void vsid::VSIDPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan)
 {
 	if (!FlightPlan.IsValid()) return;
+	if (this->outOfVis(FlightPlan)) return;
 
 	// if we receive updates for flight plans validate entered sid again to sync between controllers
 	// updates are received for any flight plan not just that under control
@@ -4744,6 +4747,7 @@ void vsid::VSIDPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlight
 void vsid::VSIDPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn::CFlightPlan FlightPlan, int DataType)
 {
 	if (!FlightPlan.IsValid()) return;
+	if (this->outOfVis(FlightPlan)) return;
 
 	EuroScopePlugIn::CFlightPlanControllerAssignedData cad = FlightPlan.GetControllerAssignedData();
 	std::string callsign = FlightPlan.GetCallsign();
@@ -5230,6 +5234,9 @@ void vsid::VSIDPlugin::OnControllerPositionUpdate(EuroScopePlugIn::CController C
 	{
 		if (failit->second >= MAX_ATC_FAIL_COUNT)
 		{
+			vsid::Logger::log(LogLevel::Debug, std::format("[{}] Adding to ignore list after reaching max_atc_fail_count.", atcCallsign),
+				vsid::DebugLevel::Atc);
+
 			this->ignoredAtc.insert({ atcCallsign, data });
 			return;
 		}
@@ -5262,6 +5269,14 @@ void vsid::VSIDPlugin::OnControllerPositionUpdate(EuroScopePlugIn::CController C
 	if (atcCallsign.ends_with("FMP"))
 	{
 		vsid::Logger::log(LogLevel::Debug, std::format("[{}] Adding FMP station to ignore list.", atcCallsign), vsid::DebugLevel::Atc);
+
+		this->ignoredAtc.insert({ atcCallsign, data });
+		return;
+	}
+
+	if (atcCallsign.ends_with("SUP"))
+	{
+		vsid::Logger::log(LogLevel::Debug, std::format("[{}] Adding SUP station to ignore list.", atcCallsign), vsid::DebugLevel::Atc);
 
 		this->ignoredAtc.insert({ atcCallsign, data });
 		return;
@@ -5447,7 +5462,6 @@ void vsid::VSIDPlugin::OnControllerPositionUpdate(EuroScopePlugIn::CController C
 void vsid::VSIDPlugin::OnControllerDisconnect(EuroScopePlugIn::CController Controller)
 {
 	std::string atcCallsign = Controller.GetCallsign();
-	std::string atcSI = Controller.GetPositionId();
 
 	if (auto it = this->activeAtc.find(atcCallsign); it != this->activeAtc.end())
 	{
@@ -5458,7 +5472,7 @@ void vsid::VSIDPlugin::OnControllerDisconnect(EuroScopePlugIn::CController Contr
 			vsid::Logger::log(LogLevel::Debug, std::format("[{}] disconnected. Removing from ATC list for [{}].", atcCallsign,
 				icao), vsid::DebugLevel::Atc);
 
-			airport.controllers.erase(atcSI);
+			airport.controllers.erase(atcCallsign);
 		}
 
 		vsid::Logger::log(LogLevel::Debug, std::format("[{}] disconnected. Removing from general active ATC list.", atcCallsign), vsid::DebugLevel::Atc);
