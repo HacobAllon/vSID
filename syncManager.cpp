@@ -17,7 +17,7 @@ void vsid::sync::SyncManager::add(const std::string& callsign, const std::string
 
 	if (!qcs.empty() && vsid::utils::svEqualCi(qcs.back().newScratch, newScratch)) return;
 
-	vsid::Logger::log(LogLevel::Debug, std::format("[{}] adding [{}/{}] to sync queue.",
+	vsid::Logger::log(LogLevel::Debug, std::format("[{}] adding New: [{}] Old: [{}] to sync queue.",
 		callsign, trimmedNew, trimmedOld), DebugLevel::Sync);
 
 	qcs.push_back({ std::move(trimmedNew), std::move(trimmedOld)});
@@ -32,7 +32,7 @@ void vsid::sync::SyncManager::processQueue(EuroScopePlugIn::CPlugIn* plugin)
 
 	auto now = std::chrono::steady_clock::now();
 
-	vsid::Logger::log(LogLevel::Debug, "Started sync processing queue...", DebugLevel::Dev);
+	vsid::Logger::log(LogLevel::Debug, std::format("Started sync processing queue... Size [{}]", this->queue.size()), DebugLevel::Dev);
 
 	for (auto it = this->queue.begin(); it != this->queue.end();)
 	{
@@ -54,7 +54,10 @@ void vsid::sync::SyncManager::processQueue(EuroScopePlugIn::CPlugIn* plugin)
 
 		if (!FlightPlan.IsValid())
 		{
-			++it;
+			vsid::Logger::log(LogLevel::Debug, std::format("[{}] Flightplan not valid. Removing from sync queue.", callsign), DebugLevel::Sync);
+
+			this->states.erase(callsign);
+			it = this->queue.erase(it);
 			continue;
 		}
 
@@ -116,8 +119,10 @@ void vsid::sync::SyncManager::update(EuroScopePlugIn::CFlightPlan& FlightPlan, c
 
 	if (data.state == SyncState::WaitOnSync)
 	{
-		vsid::Logger::log(LogLevel::Debug, std::format("[{}] WaitOnSync. Current [{}] | Expected [{}] | Overwrite [{}]",
-			callsign, currScratch, msg.newScratch, scratchOverwrite), DebugLevel::Sync);
+		vsid::Logger::log(LogLevel::Debug, std::format("[{}] WaitOnSync. Current [{}] | Expected [{}]{}",
+			callsign, currScratch, msg.newScratch,
+			(scratchOverwrite.empty()) ? "" : std::format(" | Overwrite[{}]", scratchOverwrite)),
+			DebugLevel::Sync);
 
 		if (scratchOverwrite == "GND" && this->gndStates.contains(msg.newScratch))
 		{
