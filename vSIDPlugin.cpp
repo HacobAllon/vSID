@@ -2487,7 +2487,7 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 					}
 				}
 
-				if (vsid::fplnhelper::getAtcBlock(fpln).second.empty())
+				if (req != "clearance" && vsid::fplnhelper::getAtcBlock(fpln).second.empty())
 				{
 					vsid::Logger::log(LogLevel::Warning, std::format("[{}] no departure runway found in flight plan for request [{}]. Not setting the request!", callsign, req));
 					return;
@@ -3191,7 +3191,7 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				{
 					for (auto& [rwy, rwyreq] : this->activeAirports[adep].rwyrequests[request])
 					{
-						for (std::set<std::pair<std::string, long long>>::iterator it = rwyreq.begin(); it != rwyreq.end(); ++it)
+						for (auto it = rwyreq.begin(); it != rwyreq.end(); ++it)
 						{
 							if (it->first == callsign)
 							{
@@ -3206,7 +3206,7 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				// check normal requests
 				else if (!isFplRwyReq&& this->activeAirports[adep].requests.contains(request))
 				{
-					for (std::set<std::pair<std::string, long long>>::iterator it = this->activeAirports[adep].requests[request].begin();
+					for (auto it = this->activeAirports[adep].requests[request].begin();
 						it != this->activeAirports[adep].requests[request].end(); ++it)
 					{
 						if (it->first == callsign)
@@ -4858,6 +4858,7 @@ void vsid::VSIDPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn:
 					std::vector<std::string> req = vsid::utils::split(scratchpad.substr(pos + toFind.size(), scratchpad.size()), '/');
 					std::string reqType = vsid::utils::tolower(req.at(0));
 					bool isRwyReq = reqType.find("rwy") != std::string::npos;
+
 					if (isRwyReq)
 					{
 						try
@@ -4881,7 +4882,7 @@ void vsid::VSIDPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn:
 
 						for (auto it = this->activeAirports[adep].requests.begin(); it != this->activeAirports[adep].requests.end(); ++it)
 						{
-							for (std::set<std::pair<std::string, long long>>::iterator jt = it->second.begin(); jt != it->second.end();)
+							for (auto jt = it->second.begin(); jt != it->second.end();)
 							{
 								if (jt->first != callsign)
 								{
@@ -4918,7 +4919,7 @@ void vsid::VSIDPlugin::OnFlightPlanControllerAssignedDataUpdate(EuroScopePlugIn:
 						{
 							for (auto it = rwys.begin(); it != rwys.end(); ++it)
 							{
-								for (std::set<std::pair<std::string, long long>>::iterator jt = it->second.begin(); jt != it->second.end();)
+								for (auto jt = it->second.begin(); jt != it->second.end();)
 								{
 									if (jt->first != callsign)
 									{
