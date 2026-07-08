@@ -4452,7 +4452,7 @@ bool vsid::VSIDPlugin::OnCompileCommand(const char* sCommandLine)
 				vsid::Logger::enableConsole();
 			}
 
-			vsid::Logger::log(LogLevel::Info, std::format("DEBUG area active: [{}]", vsid::Logger::getDebugLevelString()));
+			if(vsid::Logger::getConsoleState()) vsid::Logger::log(LogLevel::Info, std::format("DEBUG area active: [{}]", vsid::Logger::getDebugLevelString()));
 			return true;
 		}
 
