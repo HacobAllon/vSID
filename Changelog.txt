@@ -25,7 +25,9 @@
 	* "hovNeutral" (default: orange) - caution / information color
 	* "hovWarning" (default: red) - warning color
 *	CONF - implemented multi file ESE parsing (#430)
-*	ATC - FMP stations are skipped in controller detection (#410)
+*	CONF - new config value "logDevOnly" as boolean value to also print / log temporary development messages (default: false)
+*	ATC - FMP stations are skipped in controller detection and added to ignore list (#410)
+*	ATC - SUP stations are skipped in controller detection and added to ignore list
 *	ATC - if a controller disconnects that was on the list for failed SI determination the callsign will be removed to enable new evaluation upon new connection
 *	CMD - refactored command system enabling multiple parameters to be dynamically evaluated
 *	CMD - request command now also evaluates rwy request lists (as of now only 'startup') (#42)
@@ -45,12 +47,12 @@
 	* .vsid area (ICAO) [arealist] - toggles area(s) for the given airport. Multiple areas are space separated (e.g. area1 area2)
 	* .vsid area off - switches off all areas
 *	CMD - new behaviour for auto command
-	* .vsid auto [icaolist] - toggles automode force mode for given ICAOs (more than 1 parameter is usually only used for top-down services)
+	* .vsid auto [icaolist] - toggles automode (force) mode for given ICAOs (more than 1 parameter is usually only used for top-down services)
 *	CMD - new behaviour for rule command
 	* .vsid rule (ICAO) - lists all rules for the given airport
 	* .vsid rule (RULENAME) - toggles the given rule at any active airport (#421)
 	* .vsid rule (ICAO) [rulelist] - toggles all given rules for the specified airport
-*	GEN - changed syncing (requests, gnd states, etc) to new internal states and reduced update code call (updates are now with every scratch pad entry, but only evaluated if a state for the callsign is held)
+*	GEN - changed syncing (requests, gnd states, etc) to new internal states and reduced update code call (updates are now with every scratchpad entry, but only evaluated if a state for the callsign is held)
 	* syncing is moved to a syncManager
 	* watch dog stops sync spamming in case a state cannot be switched and restores the old scratch pad entry
 
