@@ -1,0 +1,730 @@
+{
+    "RPLL": {
+        "elevation": 75,
+        "runways": "06,24,13,31",
+        "transAlt": 11000,
+        "maxInitialClimb": 7000,
+        "appSI": "AKDAP,BUCAL,CAB,CONDE,ESCAN,IBAGO,LAIYA,LUBAN,NABAL,NATIB,OLIVA,OLONG,POLIO,REPAT,TADEL,MIA",
+        "sids": {
+            "initial": 3000,
+            "climbvia": true,
+            "ALPAS": {
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "BETEL": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "BUCAL": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "CAB": {
+                "A": {
+                    "1": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "1": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "1": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "DINO": {
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "HARBO": {
+                "": {
+                    "1": {
+                        "rwy": "31",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "IBAGO": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "prio": 1
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "prio": 1
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "IPATA": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "JOM": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "LAIYA": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "prio": 1
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "prio": 1
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "NATIB": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "prio": 1
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "prio": 1
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "OLIVA": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "prio": 1
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "prio": 1
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "SIMBO": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "prio": 1
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "prio": 1
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "prio": 1
+                    }
+                }
+            },
+            "SIRCA": {
+                "D": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "E": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "F": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "TIMON": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            },
+            "VERDE": {
+                "A": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "B": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "C": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "NON-RNAV": true
+                        },
+                        "prio": 2
+                    }
+                },
+                "R": {
+                    "2": {
+                        "rwy": "06",
+                        "initial": 7000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                },
+                "V": {
+                    "2": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    },
+                    "4": {
+                        "rwy": "13",
+                        "initial": 3000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 2,
+                        "pilotfiled": true
+                    }
+                },
+                "P": {
+                    "2": {
+                        "rwy": "24",
+                        "initial": 4000,
+                        "equip": {
+                            "RNAV": true
+                        },
+                        "prio": 1
+                    }
+                }
+            }
+        }
+    }
+}
