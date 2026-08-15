@@ -2260,9 +2260,15 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 			// code order important! the pop up list may only be generated when no sItemString is present (if a button has been clicked)
 			// if the list gets set up again while clicking a button wrong values might occur
 
+			auto fmt3 = [](int hundreds) {
+				char buf[8];
+				snprintf(buf, sizeof(buf), "%03d", hundreds);
+				return std::string(buf);
+			};
+
 			for (int i = this->activeAirports[adep].maxInitialClimb; i >= vsid::utils::getMinClimb(this->activeAirports[adep].elevation); i -= 500)
 			{
-				std::string menuElem = (i > this->activeAirports[adep].transAlt) ? "0" + std::to_string(i / 100) : "A" + std::to_string(i / 100);
+				std::string menuElem = fmt3(i / 100);
 				alt[menuElem] = i;
 			}
 
@@ -2271,7 +2277,7 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 				this->OpenPopupList(Area, "Select Climb", 1);
 				for (int i = this->activeAirports[adep].maxInitialClimb; i >= vsid::utils::getMinClimb(this->activeAirports[adep].elevation); i -= 500)
 				{
-					std::string clmbElem = (i > this->activeAirports[adep].transAlt) ? "0" + std::to_string(i / 100) : "A" + std::to_string(i / 100);
+					std::string clmbElem = fmt3(i / 100);
 					this->AddPopupListElement(clmbElem.c_str(), clmbElem.c_str(), TAG_FUNC_VSID_CLMBMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
 				}
 
@@ -2991,20 +2997,13 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 					{
 						strcpy_s(sItemString, 16, std::string("---").c_str());
 					}
-					else if (tempAlt <= transAlt)
-					{
-						strcpy_s(sItemString, 16, std::string("A").append(std::to_string(tempAlt / 100)).c_str());
-					}
 					else
 					{
-						if (tempAlt / 100 >= 100)
-						{
-							strcpy_s(sItemString, 16, std::to_string(tempAlt / 100).c_str());
-						}
-						else
-						{
-							strcpy_s(sItemString, 16, std::string("0").append(std::to_string(tempAlt / 100)).c_str());
-						}
+						// always render as 3-digit hundreds-of-feet, no "A" prefix
+						// (4000 -> "040", 9000 -> "090", 11000 -> "110", 35000 -> "350")
+						char buf[8];
+						snprintf(buf, sizeof(buf), "%03d", tempAlt / 100);
+						strcpy_s(sItemString, 16, buf);
 					}
 				}
 				else
@@ -3013,20 +3012,12 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 					{
 						strcpy_s(sItemString, 16, std::string("---").c_str());
 					}
-					else if (fpln.GetClearedAltitude() <= transAlt)
-					{
-						strcpy_s(sItemString, 16, std::string("A").append(std::to_string(fpln.GetClearedAltitude() / 100)).c_str());
-					}
 					else
 					{
-						if (fpln.GetClearedAltitude() / 100 >= 100)
-						{
-							strcpy_s(sItemString, 16, std::to_string(fpln.GetClearedAltitude() / 100).c_str());
-						}
-						else
-						{
-							strcpy_s(sItemString, 16, std::string("0").append(std::to_string(fpln.GetClearedAltitude() / 100)).c_str());
-						}
+						// always render as 3-digit hundreds-of-feet, no "A" prefix
+						char buf[8];
+						snprintf(buf, sizeof(buf), "%03d", fpln.GetClearedAltitude() / 100);
+						strcpy_s(sItemString, 16, buf);
 					}
 				}
 			}

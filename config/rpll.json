@@ -27,15 +27,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -150,15 +141,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -221,15 +203,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -262,15 +235,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -365,15 +329,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -632,15 +587,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
@@ -703,15 +649,6 @@
                             "RNAV": true
                         },
                         "prio": 1
-                    },
-                    "4": {
-                        "rwy": "13",
-                        "initial": 3000,
-                        "equip": {
-                            "RNAV": true
-                        },
-                        "prio": 2,
-                        "pilotfiled": true
                     }
                 },
                 "P": {
