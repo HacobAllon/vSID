@@ -61,6 +61,8 @@ const int TAG_FUNC_VSID_TSSQUAWK = 940;
 const int TAG_ITEM_VSID_HOVF = 995;
 const int TAG_FUNC_VSID_HOV = 996;
 
+const int TAG_ITEM_VSID_FIXN = 650;
+
 // menues
 
 const int MENU = 100;

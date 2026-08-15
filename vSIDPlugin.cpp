@@ -73,6 +73,8 @@ vsid::VSIDPlugin::VSIDPlugin() : EuroScopePlugIn::CPlugIn(EuroScopePlugIn::COMPA
 	RegisterTagItemType("Handover Flag", TAG_ITEM_VSID_HOVF);
 	RegisterTagItemFunction("Set handover flag", TAG_FUNC_VSID_HOV);
 
+	RegisterTagItemType("First Fix (FIXN)", TAG_ITEM_VSID_FIXN);
+
 	this->loadEse(); // load and parse ese file
 
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0)
@@ -3323,6 +3325,22 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 					*pRGB = this->configParser.getColor("hovNeutral");
 					strcpy_s(sItemString, 16, "HOV");
 				}
+			}
+		}
+
+		// FIXN: first "real" fix of the route after the SID/RWY prefix.
+		// findSidWpt() already returns the exit fix by walking the filed
+		// route and matching against known SID waypoints:
+		//   "IPATA2P/24 IPATA B462 MASBA W8 MCT"      -> "IPATA"
+		//   "HARBO1/31 CAB N884 ALBAX Y533 AZAMA ..." -> "CAB"
+		if (ItemCode == TAG_ITEM_VSID_FIXN)
+		{
+			std::string fix = this->findSidWpt(FlightPlan);
+			if (!fix.empty())
+			{
+				*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+				*pRGB = RGB(111, 153, 110);   // sage — matches other "set" colours
+				strcpy_s(sItemString, 16, fix.c_str());
 			}
 		}
 	}
