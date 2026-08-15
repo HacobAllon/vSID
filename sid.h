@@ -46,11 +46,12 @@ namespace vsid
 			std::map<std::string, std::map<std::string, std::string>> actDepRwy = {}, std::string wtc = "", std::string engineType = "", std::string wingType = "",
 			std::map<std::string, bool>acftType = {}, int engineCount = 0, int mtow = 0, std::map<std::string, bool> dest = {},
 			std::map<std::string, std::map<std::string, std::vector<std::string>>> route = {}, std::string customRule = "", std::string area = "", int lvp = -1,
-			int timeFrom = -1, int timeTo = -1, bool sidHighlight = false, bool clmbHighlight = false) : base(base), waypoint(waypoint), id(id), number(number), designator(designator),
+			int timeFrom = -1, int timeTo = -1, bool sidHighlight = false, bool clmbHighlight = false, bool requireAtcRwy = false) : base(base), waypoint(waypoint), id(id), number(number), designator(designator),
 			rwys(rwys), transition(transition), allowDiffNumbers(allowDiffNumbers), equip(equip), initialClimb(initialClimb), climbvia(climbvia), prio(prio),
 			pilotfiled(pilotfiled), actArrRwy(actArrRwy), actDepRwy(actDepRwy), wtc(wtc), engineType(engineType),
 			wingType(wingType), acftType(acftType), engineCount(engineCount), mtow(mtow), dest(dest), route(route),
-			customRule(customRule), area(area), lvp(lvp), timeFrom(timeFrom), timeTo(timeTo), sidHighlight(sidHighlight), clmbHighlight(clmbHighlight) {};
+			customRule(customRule), area(area), lvp(lvp), timeFrom(timeFrom), timeTo(timeTo), sidHighlight(sidHighlight), clmbHighlight(clmbHighlight),
+			requireAtcRwy(requireAtcRwy) {};
 
 		std::string base;
 		std::string waypoint;
@@ -69,6 +70,11 @@ namespace vsid
 		bool climbvia;
 		int prio;
 		bool pilotfiled;
+		// When true, this SID is only considered for auto-selection once ATC
+		// has explicitly assigned a runway to the flight. Useful for catch-all
+		// SIDs (wpt: "XXX") that would otherwise be picked before a runway is
+		// known and would then force their own runway onto the flight.
+		bool requireAtcRwy = false;
 		//************************************
 		// Parameter: 1. map <std::string, - type of "allow" or "deny"
 		// Parameter: 2. map <std::string,  - type of "allow" or "deny"

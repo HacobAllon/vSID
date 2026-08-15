@@ -500,6 +500,17 @@ void vsid::ConfigParser::loadAirportConfig(std::map<std::string, vsid::Airport, 
 						aptInfo.allRwys = vsid::utils::split(this->parsedConfig.at(icao).value("runways", ""), ',');
 						aptInfo.transAlt = this->parsedConfig.at(icao).value("transAlt", 0);
 						aptInfo.maxInitialClimb = this->parsedConfig.at(icao).value("maxInitialClimb", 0);
+						// Per-runway initial climb table. Applied when a SID has no
+						// explicit initialClimb — useful for RDVx/catch-all SIDs that
+						// serve every runway under a single SID name.
+						if (this->parsedConfig.at(icao).contains("rwyInitial") &&
+							this->parsedConfig.at(icao).at("rwyInitial").is_object())
+						{
+							for (auto& [rwy, alt] : this->parsedConfig.at(icao).at("rwyInitial").items())
+							{
+								if (alt.is_number_integer()) aptInfo.rwyInitial[rwy] = alt.get<int>();
+							}
+						}
 						aptInfo.timezone = this->parsedConfig.at(icao).value("timezone", "Etc/UTC");
 						aptInfo.requests["clearance"] = {};
 						aptInfo.requests["startup"] = {};
@@ -1109,6 +1120,8 @@ void vsid::ConfigParser::loadAirportConfig(std::map<std::string, vsid::Airport, 
 														idSetting.mtow = this->parsedConfig.at(icao).at("sids").at(sidField.key()).at(sidWpt.key()).at(sidDes.key()).at(sidId.key());
 													else if (sidId.key() == "customRule")
 														idSetting.customRule = vsid::utils::toupper(this->parsedConfig.at(icao).at("sids").at(sidField.key()).at(sidWpt.key()).at(sidDes.key()).at(sidId.key()));
+													else if (sidId.key() == "requireAtcRwy")
+														idSetting.requireAtcRwy = this->parsedConfig.at(icao).at("sids").at(sidField.key()).at(sidWpt.key()).at(sidDes.key()).at(sidId.key());
 													else if (sidId.key() == "area")
 														idSetting.area = vsid::utils::toupper(this->parsedConfig.at(icao).at("sids").at(sidField.key()).at(sidWpt.key()).at(sidDes.key()).at(sidId.key()));
 													else if (sidId.key() == "equip")
@@ -1194,7 +1207,7 @@ void vsid::ConfigParser::loadAirportConfig(std::map<std::string, vsid::Airport, 
 																	idSetting.actArrRwy, idSetting.actDepRwy, idSetting.wtc, idSetting.engineType, idSetting.wingType,
 																	idSetting.acftType, idSetting.engineCount, idSetting.mtow, idSetting.dest, idSetting.route,
 																	idSetting.customRule, idSetting.area, idSetting.lvp, idSetting.timeFrom, idSetting.timeTo,
-																	idSetting.sidHighlight, idSetting.clmbHighlight };
+																	idSetting.sidHighlight, idSetting.clmbHighlight, idSetting.requireAtcRwy };
 												aptInfo.sids.push_back(newSid);
 												if (newSid.timeFrom != -1 && newSid.timeTo != -1) aptInfo.timeSids.push_back(newSid);
 

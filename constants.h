@@ -63,6 +63,13 @@ const int TAG_FUNC_VSID_HOV = 996;
 
 const int TAG_ITEM_VSID_FIXN = 650;
 
+// RADAR / NON-RADAR mode toggle. TAG_ITEM shows the current mode for the
+// flight's departure airport; TAG_FUNC opens a popup letting the controller
+// pick a mode. Switching mode flips the airport's RADAR / NONRADAR
+// customRules so SID auto-selection picks the right family.
+const int TAG_ITEM_VSID_MODE = 651;
+const int TAG_FUNC_VSID_MODEMENU = 751;
+
 // menues
 
 const int MENU = 100;
@@ -71,6 +78,12 @@ const int MENU_BUTTON = 120;
 const int MENU_BUTTON_CLOSE = 121;
 const int MENU_TOP_BAR = 111;
 const int MENU_BOTTOM_BAR = 112;
+
+// Floating on-radar mode button (RADAR / NON-RADAR toggle).
+// SCREEN_OBJ_MODE_BUTTON — click to open popup at button location.
+// SCREEN_OBJ_MODE_BUTTON_DRAG — reserved for future drag support.
+const int SCREEN_OBJ_MODE_BUTTON = 130;
+const int SCREEN_OBJ_MODE_BUTTON_DRAG = 131;
 
 // errors
 

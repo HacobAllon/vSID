@@ -4,6 +4,16 @@
         "runways": "06,24,13,31",
         "transAlt": 11000,
         "maxInitialClimb": 7000,
+        "rwyInitial": {
+            "06": 7000,
+            "24": 4000,
+            "13": 3000,
+            "31": 3000
+        },
+        "customRules": {
+            "RADAR": false,
+            "NONRADAR": true
+        },
         "appSI": "AKDAP,BUCAL,CAB,CONDE,ESCAN,IBAGO,LAIYA,LUBAN,NABAL,NATIB,OLIVA,OLONG,POLIO,REPAT,TADEL,MIA",
         "sids": {
             "initial": 3000,
@@ -16,7 +26,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -26,7 +37,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -36,7 +48,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -48,7 +61,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -58,7 +72,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -68,7 +83,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -78,7 +94,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -88,7 +105,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -100,7 +118,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -110,7 +129,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -120,7 +140,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -130,7 +151,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -140,7 +162,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -150,7 +173,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -162,7 +186,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -172,7 +197,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -182,7 +208,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -192,7 +219,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -202,7 +230,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -212,7 +241,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -224,7 +254,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -234,7 +265,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -244,13 +276,16 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
             "HARBO": {
                 "1": {
                     "": {
+                        "wpt": "XXX",
+                        "requireAtcRwy": true,
                         "rwy": "31",
                         "initial": 3000,
                         "prio": 1
@@ -262,21 +297,24 @@
                     "2": {
                         "rwy": "06",
                         "initial": 7000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
                     "2": {
                         "rwy": "24",
                         "initial": 4000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -288,7 +326,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -298,7 +337,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -308,7 +348,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -318,7 +359,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -328,7 +370,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -338,7 +381,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -350,7 +394,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -360,7 +405,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -370,7 +416,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -380,7 +427,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -390,7 +438,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -399,21 +448,24 @@
                     "2": {
                         "rwy": "06",
                         "initial": 7000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
                     "2": {
                         "rwy": "24",
                         "initial": 4000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -422,21 +474,24 @@
                     "2": {
                         "rwy": "06",
                         "initial": 7000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
                     "2": {
                         "rwy": "24",
                         "initial": 4000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -445,21 +500,24 @@
                     "2": {
                         "rwy": "06",
                         "initial": 7000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
                     "2": {
                         "rwy": "24",
                         "initial": 4000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -468,21 +526,24 @@
                     "2": {
                         "rwy": "06",
                         "initial": 7000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
                     "2": {
                         "rwy": "24",
                         "initial": 4000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -494,7 +555,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "E": {
@@ -504,7 +566,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "F": {
@@ -514,7 +577,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -524,7 +588,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -534,7 +599,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -546,7 +612,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -556,7 +623,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -566,7 +634,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -576,7 +645,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -586,7 +656,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -596,7 +667,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 }
             },
@@ -608,7 +680,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "B": {
@@ -618,7 +691,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "C": {
@@ -628,7 +702,8 @@
                         "equip": {
                             "NON-RNAV": true
                         },
-                        "prio": 2
+                        "prio": 2,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "R": {
@@ -638,7 +713,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "V": {
@@ -648,7 +724,8 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
                     }
                 },
                 "P": {
@@ -658,7 +735,152 @@
                         "equip": {
                             "RNAV": true
                         },
-                        "prio": 1
+                        "prio": 1,
+                        "customRule": "NONRADAR"
+                    }
+                }
+            },
+            "RDVxALPA": {
+                "S": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxBETE": {
+                "L": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxBUCA": {
+                "L": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxCA": {
+                "B": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxDINN": {
+                "O": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxIBAG": {
+                "O": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxIPAT": {
+                "A": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxJO": {
+                "M": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxLI": {
+                "P": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxNATI": {
+                "B": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxOLIV": {
+                "A": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxSIMB": {
+                "O": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxSIRC": {
+                "A": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxTIMO": {
+                "N": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RDVxVERD": {
+                "E": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
+                    }
+                }
+            },
+            "RD": {
+                "V": {
+                    "": {
+                        "rwy": "06,13,24,31",
+                        "prio": 1,
+                        "customRule": "RADAR"
                     }
                 }
             }

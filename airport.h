@@ -114,6 +114,10 @@ namespace vsid
 		//bool arrAsDep = false;
 		int transAlt = 0;
 		int maxInitialClimb = 0;
+		// per-runway initial climb fallback used when a SID has no explicit
+		// initialClimb (0). Populated from JSON key "rwyInitial" at airport level.
+		// key: runway id ("06", "24R", …), value: climb altitude in feet.
+		std::map<std::string, int> rwyInitial = {};
 		bool autoHandoff = true;
 		std::map<std::string, bool> settings = {};
 		std::unordered_map<std::string, vsid::AtcData, vsid::utils::StringHash, std::equal_to<>> controllers = {};

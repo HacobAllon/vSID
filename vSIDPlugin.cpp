@@ -75,6 +75,12 @@ vsid::VSIDPlugin::VSIDPlugin() : EuroScopePlugIn::CPlugIn(EuroScopePlugIn::COMPA
 
 	RegisterTagItemType("First Fix (FIXN)", TAG_ITEM_VSID_FIXN);
 
+	// TAG_FUNC_VSID_MODEMENU is still registered for the popup callback
+	// (fired by the floating on-radar button in display.cpp), but the
+	// TAG_ITEM_VSID_MODE strip column is no longer registered — the user
+	// wanted an on-radar button instead of a strip column.
+	RegisterTagItemFunction("Mode Menu (RADAR / NON-RADAR)", TAG_FUNC_VSID_MODEMENU);
+
 	this->loadEse(); // load and parse ese file
 
 	if (curl_global_init(CURL_GLOBAL_DEFAULT) != 0)
@@ -323,6 +329,16 @@ vsid::Sid vsid::VSIDPlugin::processSid(EuroScopePlugIn::CFlightPlan& FlightPlan,
 		// skip if current SID does not match found SID wpt
 		if (currSid.transition.empty() && currSid.waypoint != sidWpt && currSid.waypoint != "XXX") continue;
 		else if (!currSid.transition.empty() && !currSid.transition.contains(sidWpt)) continue;
+
+		// SID opts into being considered only after ATC assigns a runway.
+		// Used for catch-all SIDs (wpt: "XXX") that would otherwise win
+		// for every unassigned flight and drag their own runway with them.
+		if (currSid.requireAtcRwy && actAtcRwy == "")
+		{
+			vsid::Logger::log(LogLevel::Debug, std::format("[{}] Skipping SID [{}] because requireAtcRwy is set and no ATC rwy assigned yet",
+				callsign, currSid.idName()), DebugLevel::Sid);
+			continue;
+		}
 
 		bool rwyMatch = false;
 		bool restriction = false; // #evaluate - can probably be removed, tmp unused
@@ -1408,17 +1424,33 @@ void vsid::VSIDPlugin::processFlightplan(EuroScopePlugIn::CFlightPlan& FlightPla
 			this->processed[callsign].atcRWY = true;
 		}
 
-		if (sidSuggestion.base != "" && sidCustomSuggestion.base == "" && sidSuggestion.initialClimb) // #evaluate - custom kept if same as std - might remove one branch
+		// Resolve initial climb, falling back to the airport's per-runway table
+		// (rwyInitial) when a SID has no explicit initialClimb. Same trick as
+		// the CLIMB tag renderer — see the effInitial lambda there.
+		auto effInitialLocal = [&](const vsid::Sid& sid) -> int
 		{
-			int initialClimb = (sidSuggestion.initialClimb > fplnData.GetFinalAltitude()) ? fplnData.GetFinalAltitude() : sidSuggestion.initialClimb;
+			if (sid.initialClimb > 0) return sid.initialClimb;
+			std::string rwy = vsid::fplnhelper::getAtcBlock(FlightPlan).second;
+			if (rwy.empty()) rwy = atcRwy;
+			if (rwy.empty()) return 0;
+			auto& rwyMap = this->activeAirports[fplnData.GetOrigin()].rwyInitial;
+			auto it = rwyMap.find(rwy);
+			return (it != rwyMap.end()) ? it->second : 0;
+		};
+
+		if (sidSuggestion.base != "" && sidCustomSuggestion.base == "" && effInitialLocal(sidSuggestion))
+		{
+			int base = effInitialLocal(sidSuggestion);
+			int initialClimb = (base > fplnData.GetFinalAltitude()) ? fplnData.GetFinalAltitude() : base;
 			if (!cad.SetClearedAltitude(initialClimb))
 			{
 				vsid::Logger::log(LogLevel::Error, std::format("[{}] - failed to set altitude. Code: {}", callsign, ERROR_FPLN_SETALT));
 			}
 		}
-		else if (sidCustomSuggestion.base != "" && sidCustomSuggestion.initialClimb)
+		else if (sidCustomSuggestion.base != "" && effInitialLocal(sidCustomSuggestion))
 		{
-			int initialClimb = (sidCustomSuggestion.initialClimb > fplnData.GetFinalAltitude()) ? fplnData.GetFinalAltitude() : sidCustomSuggestion.initialClimb;
+			int base = effInitialLocal(sidCustomSuggestion);
+			int initialClimb = (base > fplnData.GetFinalAltitude()) ? fplnData.GetFinalAltitude() : base;
 			if (!cad.SetClearedAltitude(initialClimb))
 			{
 				vsid::Logger::log(LogLevel::Error, std::format("[{}] - failed to set altitude. Code: {}", callsign, ERROR_FPLN_SETALT));
@@ -2617,6 +2649,39 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 			this->syncManager.add(callsign, std::format(".VSID_HOV_{}", this->processed[callsign].hov ? "TRUE" : "FALSE"),
 				fpln.GetControllerAssignedData().GetScratchPadString());
 		}
+
+		// RADAR / NON-RADAR mode toggle popup callback. Fired when a user
+		// picks an element from the popup that the floating on-radar button
+		// opened (see Display::OnClickScreenObject). Popup element values
+		// are encoded "ICAO|MODE" so we can act on the correct airport
+		// without depending on which flight is currently ES-selected.
+		if (FunctionId == TAG_FUNC_VSID_MODEMENU && strlen(sItemString) > 0)
+		{
+			std::string pick = sItemString;
+			auto pipe = pick.find('|');
+			if (pipe == std::string::npos) return;   // malformed
+			std::string targetIcao = pick.substr(0, pipe);
+			std::string mode       = pick.substr(pipe + 1);
+			if (!this->activeAirports.contains(targetIcao)) return;
+
+			auto& rules = this->activeAirports[targetIcao].customRules;
+			bool radar = (mode == "RADAR");
+			if (rules.count("RADAR"))    rules["RADAR"]    = radar;
+			if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
+			vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
+
+			// Force re-processing of every flight on this airport so tag
+			// suggestions refresh immediately to the newly-active SID
+			// family. Otherwise the strip would keep showing the old
+			// suggestion until each flight was clicked.
+			for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
+			{
+				if (std::string(fp.GetFlightPlanData().GetOrigin()) == targetIcao)
+				{
+					this->processed.erase(fp.GetCallsign());
+				}
+			}
+		}
 	}
 
 	if (FunctionId == TAG_FUNC_VSID_CTL)
@@ -2939,41 +3004,57 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 
 				bool rflBelowInitial = false; // additional check for suggestion coloring
 
-				if (this->processed[callsign].sid.initialClimb != 0 &&
+				// Effective initial climb: SID's explicit value wins; else fall back
+				// to airport.rwyInitial[assigned rwy]. Lets same-name SIDs that serve
+				// multiple runways (e.g. RDVxOLIVA on 06/13/24/31) get the correct
+				// initial without needing a separate config entry per runway.
+				auto effInitial = [&](const vsid::Sid& sid) -> int
+				{
+					if (sid.initialClimb > 0) return sid.initialClimb;
+					std::string atcRwy = vsid::fplnhelper::getAtcBlock(FlightPlan).second;
+					if (atcRwy.empty()) return 0;
+					auto& rwyMap = this->activeAirports[fplnData.GetOrigin()].rwyInitial;
+					auto it = rwyMap.find(atcRwy);
+					return (it != rwyMap.end()) ? it->second : 0;
+				};
+				int sidInitial = effInitial(this->processed[callsign].sid);
+				int customSidInitial = effInitial(this->processed[callsign].customSid);
+
+				if (sidInitial != 0 &&
 					this->processed[callsign].customSid.empty() &&
 					(atcSid == sidName || atcSid == "" || atcSid == fplnData.GetOrigin())
 					)
 				{
-					if (fpln.GetFinalAltitude() < this->processed[callsign].sid.initialClimb)
+					if (fpln.GetFinalAltitude() < sidInitial)
 					{
 						tempAlt = fpln.GetFinalAltitude();
 						rflBelowInitial = true;
 					}
-					else tempAlt = this->processed[callsign].sid.initialClimb;
+					else tempAlt = sidInitial;
 				}
-				else if (this->processed[callsign].customSid.initialClimb != 0 &&
+				else if (customSidInitial != 0 &&
 					(atcSid == customSidName || atcSid == "" || atcSid == fplnData.GetOrigin())
 					)
 				{
-					if (fpln.GetFinalAltitude() < this->processed[callsign].customSid.initialClimb)
+					if (fpln.GetFinalAltitude() < customSidInitial)
 					{
 						tempAlt = fpln.GetFinalAltitude();
 						rflBelowInitial = true;
 					}
-					else tempAlt = this->processed[callsign].customSid.initialClimb;
+					else tempAlt = customSidInitial;
 				}
 
 				if (fpln.GetClearedAltitude() == fpln.GetFinalAltitude() && !rflBelowInitial && tempAlt != fpln.GetFinalAltitude())
 				{
 					*pRGB = this->configParser.getColor("suggestedClmb"); // white
 				}
-				else if ((fpln.GetClearedAltitude() != fpln.GetFinalAltitude() || tempAlt == this->processed[callsign].sid.initialClimb ||
-					tempAlt == this->processed[callsign].customSid.initialClimb) &&
+				else if ((fpln.GetClearedAltitude() != fpln.GetFinalAltitude() || tempAlt == sidInitial ||
+					tempAlt == customSidInitial) &&
 					fpln.GetClearedAltitude() == tempAlt
 					)
 				{
-					if ((tempAlt == this->processed[callsign].sid.initialClimb && this->processed[callsign].sid.clmbHighlight) ||
-						(tempAlt == this->processed[callsign].customSid.initialClimb && this->processed[callsign].customSid.clmbHighlight))
+					if ((tempAlt == sidInitial && this->processed[callsign].sid.clmbHighlight) ||
+						(tempAlt == customSidInitial && this->processed[callsign].customSid.clmbHighlight))
 					{
 						*pRGB = this->configParser.getColor("clmbHighlight");
 					}
@@ -3341,6 +3422,24 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
 				*pRGB = RGB(111, 153, 110);   // sage — matches other "set" colours
 				strcpy_s(sItemString, 16, fix.c_str());
+			}
+		}
+
+		// MODE: shows current RADAR / NON-RADAR state for the flight's ADEP.
+		// Click opens TAG_FUNC_VSID_MODEMENU to toggle. Only renders on
+		// airports that define both RADAR and NONRADAR customRules.
+		if (ItemCode == TAG_ITEM_VSID_MODE)
+		{
+			auto& rules = this->activeAirports[adep].customRules;
+			bool hasRadar = rules.count("RADAR");
+			bool hasNRad  = rules.count("NONRADAR");
+			if (hasRadar || hasNRad)
+			{
+				*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+				*pRGB = RGB(111, 153, 110);
+				if (hasRadar && rules["RADAR"])       strcpy_s(sItemString, 16, "RADAR");
+				else if (hasNRad && rules["NONRADAR"]) strcpy_s(sItemString, 16, "NRAD");
+				else                                    strcpy_s(sItemString, 16, "----");
 			}
 		}
 	}

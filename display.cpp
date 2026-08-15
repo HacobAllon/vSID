@@ -48,9 +48,77 @@ void vsid::Display::OnRefresh(HDC hDC, int Phase)
 	CDC dc;
 	dc.Attach(hDC);
 
-	
+
 	if (std::shared_ptr sharedPlugin = this->plugin.lock())
 	{
+		// -------------------------------------------------------------
+		// Floating RADAR / NON-RADAR mode button.
+		// Drawn once per radar refresh. Position is fixed top-right of
+		// the radar area (offset 90px from right, 40px from top). Click
+		// opens a popup at the button's location; the popup's element
+		// callback lives in VSIDPlugin::OnFunctionCall.
+		//
+		// The button targets the first (alphabetically) active airport
+		// that has both RADAR and NONRADAR customRules. For single-
+		// airport setups (typical) this is unambiguous. For multi-
+		// airport, other airports are still togglable via the popup
+		// value encoding "ICAO|MODE".
+		// -------------------------------------------------------------
+		std::string modeApt;
+		std::string modeText = "MODE";
+		bool haveMode = false;
+		for (auto& [icao, apt] : sharedPlugin->getActiveApts())
+		{
+			auto& rules = apt.customRules;
+			if (rules.count("RADAR") && rules.count("NONRADAR"))
+			{
+				modeApt = icao;
+				// getActiveApts() returns a const ref, so we can't use
+				// operator[] — use .at() with the count-guarded key.
+				modeText = rules.at("RADAR") ? "RADAR" : "NRAD";
+				haveMode = true;
+				break;
+			}
+		}
+
+		if (haveMode)
+		{
+			RECT rArea = this->GetRadarArea();
+			RECT btnRect;
+			btnRect.right  = rArea.right - 20;
+			btnRect.left   = btnRect.right - 70;
+			btnRect.top    = rArea.top + 40;
+			btnRect.bottom = btnRect.top + 22;
+
+			CBrush btnBg  { RGB(30, 30, 30) };
+			CPen   btnPen { PS_SOLID, 1, RGB(111, 153, 110) };
+			CBrush* oldBrushBtn = dc.SelectObject(&btnBg);
+			CPen*   oldPenBtn   = dc.SelectObject(&btnPen);
+			dc.Rectangle(&btnRect);
+
+			LOGFONT lgfontBtn;
+			memset(&lgfontBtn, 0, sizeof(LOGFONT));
+			strcpy_s(lgfontBtn.lfFaceName, LF_FACESIZE, _TEXT("EuroScope"));
+			lgfontBtn.lfHeight = 14;
+			lgfontBtn.lfWeight = FW_BOLD;
+			lgfontBtn.lfOutPrecision = OUT_TT_ONLY_PRECIS;
+			CFont fontBtn;
+			fontBtn.CreateFontIndirectA(&lgfontBtn);
+			CFont* oldFontBtn = dc.SelectObject(&fontBtn);
+
+			int oldBk = dc.SetBkMode(TRANSPARENT);
+			dc.SetTextColor(RGB(111, 153, 110));
+			dc.DrawText(modeText.c_str(), &btnRect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+			dc.SetBkMode(oldBk);
+
+			dc.SelectObject(oldFontBtn);
+			dc.SelectObject(oldPenBtn);
+			dc.SelectObject(oldBrushBtn);
+
+			// sObjectId carries the target ICAO so the click handler
+			// can open the popup with airport-encoded values.
+			this->AddScreenObject(SCREEN_OBJ_MODE_BUTTON, modeApt.c_str(), btnRect, false, "vSID mode toggle");
+		}
 		std::string showPbOn = "";
 		bool enablePbIndicator = false;
 
@@ -495,6 +563,35 @@ void vsid::Display::OnMoveScreenObject(int ObjectType, const char* sObjectId, PO
 
 void vsid::Display::OnClickScreenObject(int ObjectType, const char* sObjectId, POINT Pt, RECT Area, int Button)
 {
+	// Floating mode-toggle button. sObjectId is the target airport ICAO
+	// (set in OnRefresh when the button was drawn). Open the popup at
+	// the button's location; popup element values encode the airport
+	// so the callback in VSIDPlugin::OnFunctionCall knows which apt to
+	// flip without depending on the ES-selected flight (ASEL).
+	if (ObjectType == SCREEN_OBJ_MODE_BUTTON)
+	{
+		std::string icao = sObjectId;
+		if (std::shared_ptr sharedPlugin = this->plugin.lock())
+		{
+			auto& acts = sharedPlugin->getActiveApts();
+			auto it = acts.find(icao);
+			if (it == acts.end()) return;
+			auto& rules = it->second.customRules;
+			bool radarActive = rules.count("RADAR") && rules.at("RADAR");
+			bool nradActive  = rules.count("NONRADAR") && rules.at("NONRADAR");
+			this->OpenPopupList(Area, ("Mode - " + icao).c_str(), 1);
+			std::string radarLabel = std::string(radarActive ? "* " : "  ") + "RADAR";
+			std::string nradLabel  = std::string(nradActive  ? "* " : "  ") + "NON-RADAR";
+			// value strings carry the target airport so the popup
+			// callback in the plugin can act on the right ICAO
+			std::string radarVal = icao + "|RADAR";
+			std::string nradVal  = icao + "|NON-RADAR";
+			this->AddPopupListElement(radarLabel.c_str(), radarVal.c_str(), TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+			this->AddPopupListElement(nradLabel.c_str(),  nradVal.c_str(),  TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+		}
+		return;
+	}
+
 	if (ObjectType == MENU_BUTTON)
 	{
 		bool newWindow = (Button == EuroScopePlugIn::BUTTON_RIGHT) ? true : false;

@@ -80,6 +80,7 @@ namespace vsid
 		int timeTo = -1;
 		bool sidHighlight = false;
 		bool clmbHighlight = false;
+		bool requireAtcRwy = false;
 	};
 
 	class ConfigParser
