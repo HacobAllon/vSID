@@ -3551,19 +3551,50 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 			}
 		}
 
-		// FIXN: first "real" fix of the route after the SID/RWY prefix.
-		// findSidWpt() already returns the exit fix by walking the filed
-		// route and matching against known SID waypoints:
-		//   "IPATA2P/24 IPATA B462 MASBA W8 MCT"      -> "IPATA"
-		//   "HARBO1/31 CAB N884 ALBAX Y533 AZAMA ..." -> "CAB"
+		// FIXN: first "real" TMA exit fix of the route after the SID/RWY
+		// prefix. Walks the filed route and returns the first waypoint
+		// that is a known SID / transition waypoint at this airport — a
+		// stand-in for "on the TMA exit list". Certain fixes are inside
+		// the TMA (e.g. MIA VOR overhead RPLL) and must be skipped so we
+		// return the next real exit fix past them. If nothing valid is
+		// found in the whole route, paint red + "FLT PLN".
 		if (ItemCode == TAG_ITEM_VSID_FIXN)
 		{
-			std::string fix = this->findSidWpt(FlightPlan);
+			// TMA-interior fixes that must never be picked as the exit.
+			// Hard-coded for now; move to a per-airport "fixnExclude"
+			// JSON array if this list grows past a handful.
+			static const std::set<std::string> fixnExclude{"MIA"};
+
+			// Build the airport's known SID/transition waypoint set —
+			// same construction the second half of findSidWpt uses.
+			std::set<std::string> sidWpts;
+			for (const vsid::Sid& sid : this->activeAirports[adep].sids)
+			{
+				if (sid.waypoint != "XXX") sidWpts.insert(sid.waypoint);
+				for (auto& [base, _] : sid.transition) sidWpts.insert(base);
+			}
+
+			std::vector<std::string> filedRoute = vsid::utils::split(fplnData.GetRoute(), ' ');
+			std::string fix;
+			for (std::string wpt : filedRoute)
+			{
+				// strip speed/level suffix like "IPATA/N0450F350"
+				if (auto slash = wpt.find('/'); slash != std::string::npos) wpt = wpt.substr(0, slash);
+				if (wpt == adep) continue;                    // skip origin marker
+				if (fixnExclude.contains(wpt)) continue;      // TMA-interior fix, walk on
+				if (sidWpts.contains(wpt)) { fix = wpt; break; }
+			}
+
+			*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
 			if (!fix.empty())
 			{
-				*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
-				*pRGB = RGB(111, 153, 110);   // sage — matches other "set" colours
+				*pRGB = RGB(111, 153, 110);              // sage
 				strcpy_s(sItemString, 16, fix.c_str());
+			}
+			else
+			{
+				*pRGB = this->configParser.getColor("noSid");   // red
+				strcpy_s(sItemString, 16, "FLT PLN");
 			}
 		}
 
