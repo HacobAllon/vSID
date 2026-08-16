@@ -16,7 +16,6 @@
         },
         "appSI": "AKDAP,BUCAL,CAB,CONDE,ESCAN,IBAGO,LAIYA,LUBAN,NABAL,NATIB,OLIVA,OLONG,POLIO,REPAT,TADEL,MIA",
         "sids": {
-            "initial": 3000,
             "climbvia": true,
             "ALPAS": {
                 "R": {
