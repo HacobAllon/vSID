@@ -1924,10 +1924,43 @@ EuroScopePlugIn::CRadarScreen* vsid::VSIDPlugin::OnRadarScreenCreated(const char
 }
 
 void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, POINT Pt, RECT Area) {
-	
+
 	// if logged in as observer disable functions
 
 	if (!ControllerMyself().IsController()) return;
+
+	// RADAR / NON-RADAR mode toggle popup callback. Handled BEFORE the
+	// ASEL / IsValid / processed gates below because the floating on-radar
+	// mode button is not tied to any flight — when the popup fires there
+	// is typically no ASEL flightplan, so the usual guards would drop
+	// this call silently. Popup element values are encoded "ICAO|MODE"
+	// so we act on the correct airport without needing a selected flight.
+	if (FunctionId == TAG_FUNC_VSID_MODEMENU && strlen(sItemString) > 0)
+	{
+		std::string pick = sItemString;
+		auto pipe = pick.find('|');
+		if (pipe == std::string::npos) return;   // malformed
+		std::string targetIcao = pick.substr(0, pipe);
+		std::string mode       = pick.substr(pipe + 1);
+		if (!this->activeAirports.contains(targetIcao)) return;
+
+		auto& rules = this->activeAirports[targetIcao].customRules;
+		bool radar = (mode == "RADAR");
+		if (rules.count("RADAR"))    rules["RADAR"]    = radar;
+		if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
+		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
+
+		// Force re-processing of every flight on this airport so tag
+		// suggestions refresh immediately to the newly-active SID family.
+		for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
+		{
+			if (std::string(fp.GetFlightPlanData().GetOrigin()) == targetIcao)
+			{
+				this->processed.erase(fp.GetCallsign());
+			}
+		}
+		return;
+	}
 
 	EuroScopePlugIn::CFlightPlan fpln = FlightPlanSelectASEL();
 	std::string callsign = fpln.GetCallsign();
@@ -2650,38 +2683,6 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 				fpln.GetControllerAssignedData().GetScratchPadString());
 		}
 
-		// RADAR / NON-RADAR mode toggle popup callback. Fired when a user
-		// picks an element from the popup that the floating on-radar button
-		// opened (see Display::OnClickScreenObject). Popup element values
-		// are encoded "ICAO|MODE" so we can act on the correct airport
-		// without depending on which flight is currently ES-selected.
-		if (FunctionId == TAG_FUNC_VSID_MODEMENU && strlen(sItemString) > 0)
-		{
-			std::string pick = sItemString;
-			auto pipe = pick.find('|');
-			if (pipe == std::string::npos) return;   // malformed
-			std::string targetIcao = pick.substr(0, pipe);
-			std::string mode       = pick.substr(pipe + 1);
-			if (!this->activeAirports.contains(targetIcao)) return;
-
-			auto& rules = this->activeAirports[targetIcao].customRules;
-			bool radar = (mode == "RADAR");
-			if (rules.count("RADAR"))    rules["RADAR"]    = radar;
-			if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
-			vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
-
-			// Force re-processing of every flight on this airport so tag
-			// suggestions refresh immediately to the newly-active SID
-			// family. Otherwise the strip would keep showing the old
-			// suggestion until each flight was clicked.
-			for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
-			{
-				if (std::string(fp.GetFlightPlanData().GetOrigin()) == targetIcao)
-				{
-					this->processed.erase(fp.GetCallsign());
-				}
-			}
-		}
 	}
 
 	if (FunctionId == TAG_FUNC_VSID_CTL)

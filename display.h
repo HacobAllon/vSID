@@ -186,6 +186,14 @@ namespace vsid
 		std::weak_ptr<vsid::VSIDPlugin> plugin;
 		std::string name;
 
+		// Persistent screen position of the floating RADAR / NON-RADAR
+		// mode button. -1 = not yet placed; render pins it to the default
+		// top-right of the radar area. Otherwise these are the top-left
+		// corner of the button in radar-pixel coords, updated by
+		// OnMoveScreenObject and persisted to the ASR.
+		int modeBtnX = -1;
+		int modeBtnY = -1;
+
 		//************************************
 		// Description: Gets the current diagonal distance of the ES instance in NM
 		// Method:    getScreenNM

@@ -23,6 +23,14 @@ vsid::Display::~Display() {
 void vsid::Display::OnAsrContentLoaded(bool loaded)
 {
 	if (std::shared_ptr sharedPlugin = this->plugin.lock()) sharedPlugin->updateCheck();
+
+	// Restore persisted mode-button position from this ASR (if any).
+	// atoi returns 0 on non-numeric input which would incorrectly place
+	// the button at 0,0, so gate on strlen > 0 before parsing.
+	const char* sx = this->GetDataFromAsr("vsid_modebtn_x");
+	const char* sy = this->GetDataFromAsr("vsid_modebtn_y");
+	if (sx && strlen(sx) > 0) this->modeBtnX = std::atoi(sx);
+	if (sy && strlen(sy) > 0) this->modeBtnY = std::atoi(sy);
 }
 
 void vsid::Display::OnAsrContentToBeClosed()
@@ -85,10 +93,25 @@ void vsid::Display::OnRefresh(HDC hDC, int Phase)
 		{
 			RECT rArea = this->GetRadarArea();
 			RECT btnRect;
-			btnRect.right  = rArea.right - 20;
-			btnRect.left   = btnRect.right - 70;
-			btnRect.top    = rArea.top + 40;
-			btnRect.bottom = btnRect.top + 22;
+			const int btnW = 70;
+			const int btnH = 22;
+			// modeBtnX/Y default to -1 (unset) — anchor to top-right of
+			// the radar area. Once the user drags it, OnMoveScreenObject
+			// stores the top-left corner and we render there instead.
+			if (this->modeBtnX < 0 || this->modeBtnY < 0)
+			{
+				btnRect.right  = rArea.right - 20;
+				btnRect.left   = btnRect.right - btnW;
+				btnRect.top    = rArea.top + 40;
+				btnRect.bottom = btnRect.top + btnH;
+			}
+			else
+			{
+				btnRect.left   = this->modeBtnX;
+				btnRect.top    = this->modeBtnY;
+				btnRect.right  = btnRect.left + btnW;
+				btnRect.bottom = btnRect.top + btnH;
+			}
 
 			CBrush btnBg  { RGB(30, 30, 30) };
 			CPen   btnPen { PS_SOLID, 1, RGB(111, 153, 110) };
@@ -116,8 +139,10 @@ void vsid::Display::OnRefresh(HDC hDC, int Phase)
 			dc.SelectObject(oldBrushBtn);
 
 			// sObjectId carries the target ICAO so the click handler
-			// can open the popup with airport-encoded values.
-			this->AddScreenObject(SCREEN_OBJ_MODE_BUTTON, modeApt.c_str(), btnRect, false, "vSID mode toggle");
+			// can open the popup with airport-encoded values. Moveable
+			// flag is true so ES drives the drag; new position is
+			// captured in OnMoveScreenObject and persisted per-ASR.
+			this->AddScreenObject(SCREEN_OBJ_MODE_BUTTON, modeApt.c_str(), btnRect, true, "vSID mode toggle - drag to move");
 		}
 		std::string showPbOn = "";
 		bool enablePbIndicator = false;
@@ -557,6 +582,22 @@ void vsid::Display::OnRefresh(HDC hDC, int Phase)
 void vsid::Display::OnMoveScreenObject(int ObjectType, const char* sObjectId, POINT Pt, RECT Area, bool Released)
 {
 	if (this->menues.contains(sObjectId)) this->menues[sObjectId].move(ObjectType, Area);
+
+	// Persist the floating mode button's position. ES streams move
+	// events continuously during a drag; only write to the ASR on
+	// release so we don't spam SaveDataToAsr every frame.
+	if (ObjectType == SCREEN_OBJ_MODE_BUTTON)
+	{
+		this->modeBtnX = Area.left;
+		this->modeBtnY = Area.top;
+		if (Released)
+		{
+			this->SaveDataToAsr("vsid_modebtn_x", "vSID mode button X",
+				std::to_string(this->modeBtnX).c_str());
+			this->SaveDataToAsr("vsid_modebtn_y", "vSID mode button Y",
+				std::to_string(this->modeBtnY).c_str());
+		}
+	}
 
 	this->RequestRefresh();
 }
