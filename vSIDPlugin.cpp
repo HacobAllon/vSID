@@ -2004,15 +2004,40 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 		if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
 		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
 
-		// Force re-processing of every flight on this airport so tag
-		// suggestions refresh immediately to the newly-active SID family.
+		// Re-process flights on this airport so tag suggestions refresh
+		// to the newly-active SID family. Two protections:
+		//
+		//   1. ES clearance-received flag set (standard "delivered")
+		//   2. Transponder squawking the assigned code (controller's
+		//      other cue that clearance is delivered — some workflows
+		//      never toggle the ES flag and rely on the squawk match)
+		//
+		// A flight that satisfies EITHER stays in the processed cache
+		// untouched — no cache erase, so processFlightplan is never
+		// re-invoked for it, and its assigned SID / route / CFL cannot
+		// be rewritten (belt-and-braces against auto-mode airports
+		// where processFlightplan(checkOnly=false) would overwrite).
+		// The tag it currently shows is preserved as-is.
+		int protectedCount = 0, reprocessedCount = 0;
 		for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
 		{
-			if (std::string(fp.GetFlightPlanData().GetOrigin()) == targetIcao)
+			if (std::string(fp.GetFlightPlanData().GetOrigin()) != targetIcao) continue;
+
+			std::string assignedSq = fp.GetControllerAssignedData().GetSquawk();
+			std::string pilotSq    = fp.GetCorrelatedRadarTarget().GetPosition().GetSquawk();
+			bool squawkOk = !assignedSq.empty() && assignedSq == pilotSq;
+
+			if (fp.GetClearenceFlag() || squawkOk)
 			{
-				this->processed.erase(fp.GetCallsign());
+				++protectedCount;
+				continue;
 			}
+
+			this->processed.erase(fp.GetCallsign());
+			++reprocessedCount;
 		}
+		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode flip: {} flight(s) re-processed, {} protected (cleared or squawking assigned code)",
+			targetIcao, reprocessedCount, protectedCount));
 		return;
 	}
 
