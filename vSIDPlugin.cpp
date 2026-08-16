@@ -518,12 +518,25 @@ vsid::Sid vsid::VSIDPlugin::processSid(EuroScopePlugIn::CFlightPlan& FlightPlan,
 		std::vector<std::string> skipAtcRWY = {};
 		std::vector<std::string> skipSidRWY = {};
 
+		// Runway-size gate: RPLL rwy 13 (2258 m) is not usable by Heavy
+		// (H) / Super (J) aircraft. Auto-mode picking must never land
+		// them on 13, so we skip rwy 13 for these types before the SID
+		// matcher considers it. Same aircraft on 06/24/31 remain fine.
+		char wtcSel = fplnData.GetAircraftWtc();
+		bool tooBigForShortRwy = (wtcSel == 'H' || wtcSel == 'J');
+
 		for (std::string depRwy : depRwys)
 		{
 			// skip if a rwy has been set manually and it doesn't match available dep rwys
 			if (atcRwy != "" && atcRwy != depRwy)
 			{
 				skipAtcRWY.push_back(depRwy);
+				continue;
+			}
+			// skip rwy 13 for oversize aircraft (auto-mode wake gate)
+			if (tooBigForShortRwy && depRwy == "13")
+			{
+				skipSidRWY.push_back(depRwy);
 				continue;
 			}
 			// skip if airport dep rwys are not part of the SID
@@ -1424,13 +1437,22 @@ void vsid::VSIDPlugin::processFlightplan(EuroScopePlugIn::CFlightPlan& FlightPla
 			this->processed[callsign].atcRWY = true;
 		}
 
-		// Resolve initial climb, falling back to the airport's per-runway table
-		// (rwyInitial) when a SID has no explicit initialClimb. Same trick as
-		// the CLIMB tag renderer — see the effInitial lambda there.
+		// Resolve initial climb, falling back to the airport's per-runway
+		// table (rwyInitial) when a SID has no explicit initialClimb.
+		// Runway source order matters: we prefer the setRwy we JUST
+		// picked for this SID over re-reading getAtcBlock(FlightPlan) —
+		// SetRoute a few lines above swaps in the new "RPLL/<rwy>"
+		// prefix, but ES's internal FP state can lag by a tick so the
+		// atcBlock still returns the OLD runway at this point. That
+		// staleness previously left CFL on the old-rwy value (e.g. 030
+		// from rwy 13) when the mode toggle re-picked the SID onto a
+		// new runway (e.g. 06, which should be 070). Trusting setRwy
+		// keeps route + CFL consistent.
 		auto effInitialLocal = [&](const vsid::Sid& sid) -> int
 		{
 			if (sid.initialClimb > 0) return sid.initialClimb;
-			std::string rwy = vsid::fplnhelper::getAtcBlock(FlightPlan).second;
+			std::string rwy = setRwy;
+			if (rwy.empty()) rwy = vsid::fplnhelper::getAtcBlock(FlightPlan).second;
 			if (rwy.empty()) rwy = atcRwy;
 			if (rwy.empty()) return 0;
 			auto& rwyMap = this->activeAirports[fplnData.GetOrigin()].rwyInitial;
