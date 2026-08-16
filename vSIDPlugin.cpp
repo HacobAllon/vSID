@@ -2004,21 +2004,32 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 		if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
 		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
 
-		// Re-process flights on this airport so tag suggestions refresh
-		// to the newly-active SID family. Two protections:
+		// Refresh SID SUGGESTIONS for flights on this airport under the
+		// newly-active rule set. Two design points worth being explicit
+		// about:
 		//
-		//   1. ES clearance-received flag set (standard "delivered")
-		//   2. Transponder squawking the assigned code (controller's
-		//      other cue that clearance is delivered — some workflows
-		//      never toggle the ES flag and rely on the squawk match)
+		//   * We do NOT erase from `processed`. Erasing wipes atcRWY /
+		//     request state, and on the next processFlightplan the
+		//     plugin has no memory of the controller's runway choice —
+		//     so in auto-mode airports it re-picks a SID by priority
+		//     alone, which can land on a different runway than the
+		//     strip's runway column still shows. That's the "06 with
+		//     BUCAL_V (rwy 13) initial 3000ft" mismatch we saw.
 		//
-		// A flight that satisfies EITHER stays in the processed cache
-		// untouched — no cache erase, so processFlightplan is never
-		// re-invoked for it, and its assigned SID / route / CFL cannot
-		// be rewritten (belt-and-braces against auto-mode airports
-		// where processFlightplan(checkOnly=false) would overwrite).
-		// The tag it currently shows is preserved as-is.
-		int protectedCount = 0, reprocessedCount = 0;
+		//   * We call processFlightplan(..., checkOnly=true) — the
+		//     same call the built-in `.vsid rule` command uses on rule
+		//     changes (see the rulesChanged block below). checkOnly
+		//     guarantees no SetRoute / SetClearedAltitude: only the
+		//     .sid / .customSid fields in the cache are refreshed, so
+		//     the tag suggestion updates without touching the strip's
+		//     assigned route, CFL, or runway.
+		//
+		// Protection still applies for cleared flights: skip entirely
+		// when either the ES clearance flag is set OR the transponder
+		// is squawking the assigned code. Those flights don't even get
+		// their suggestion recomputed — nothing about their tag or
+		// strip changes on a mode flip.
+		int protectedCount = 0, refreshedCount = 0;
 		for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
 		{
 			if (std::string(fp.GetFlightPlanData().GetOrigin()) != targetIcao) continue;
@@ -2033,11 +2044,13 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 				continue;
 			}
 
-			this->processed.erase(fp.GetCallsign());
-			++reprocessedCount;
+			auto atcBlock = vsid::fplnhelper::getAtcBlock(fp);
+			if (!atcBlock.second.empty()) this->processFlightplan(fp, true, atcBlock.second);
+			else                          this->processFlightplan(fp, true);
+			++refreshedCount;
 		}
-		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode flip: {} flight(s) re-processed, {} protected (cleared or squawking assigned code)",
-			targetIcao, reprocessedCount, protectedCount));
+		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode flip: {} flight(s) suggestion-refreshed, {} protected (cleared or squawking assigned code)",
+			targetIcao, refreshedCount, protectedCount));
 		return;
 	}
 
