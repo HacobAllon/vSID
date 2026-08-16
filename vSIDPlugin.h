@@ -411,6 +411,16 @@ namespace vsid
 
 		std::map<std::string, vsid::Airport, vsid::utils::CICompare> activeAirports;
 		std::map<std::string, vsid::Fpln> processed;
+
+		// Target airport for the floating RADAR/NON-RADAR mode popup.
+		// Set by Display::OnClickScreenObject when the mode button is
+		// clicked; consumed by OnFunctionCall(TAG_FUNC_VSID_MODEMENU).
+		// This exists because ES's popup-element callback only passes
+		// sString1 (the label) as sItemString — not a hidden value —
+		// so the ICAO can't be smuggled through the element itself.
+	public:
+		std::string modePopupTarget;
+	private:
 		/**
 		 * @param std::map<std::string,> callsign
 		 * @param std::pair<,bool> fpln is disconnected

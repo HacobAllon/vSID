@@ -1981,19 +1981,25 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 	// ASEL / IsValid / processed gates below because the floating on-radar
 	// mode button is not tied to any flight — when the popup fires there
 	// is typically no ASEL flightplan, so the usual guards would drop
-	// this call silently. Popup element values are encoded "ICAO|MODE"
-	// so we act on the correct airport without needing a selected flight.
+	// this call silently. The target ICAO was stashed on the plugin by
+	// Display::OnClickScreenObject when the popup opened (ES's popup
+	// element callback only surfaces the LABEL, not a hidden value).
 	if (FunctionId == TAG_FUNC_VSID_MODEMENU && strlen(sItemString) > 0)
 	{
-		std::string pick = sItemString;
-		auto pipe = pick.find('|');
-		if (pipe == std::string::npos) return;   // malformed
-		std::string targetIcao = pick.substr(0, pipe);
-		std::string mode       = pick.substr(pipe + 1);
-		if (!this->activeAirports.contains(targetIcao)) return;
+		std::string pick = sItemString;                      // "RADAR" or "NON-RADAR"
+		std::string targetIcao = this->modePopupTarget;
+		this->modePopupTarget.clear();                       // one-shot
 
+		if (targetIcao.empty() || !this->activeAirports.contains(targetIcao))
+		{
+			vsid::Logger::log(LogLevel::Warning, std::format(
+				"Mode popup callback fired with no valid target airport "
+				"(pick=[{}], stashed=[{}])", pick, targetIcao));
+			return;
+		}
+
+		bool radar = (pick == "RADAR");
 		auto& rules = this->activeAirports[targetIcao].customRules;
-		bool radar = (mode == "RADAR");
 		if (rules.count("RADAR"))    rules["RADAR"]    = radar;
 		if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
 		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));

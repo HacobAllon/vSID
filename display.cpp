@@ -619,19 +619,29 @@ void vsid::Display::OnClickScreenObject(int ObjectType, const char* sObjectId, P
 			if (it == acts.end()) return;
 			auto& rules = it->second.customRules;
 			bool radarActive = rules.count("RADAR") && rules.at("RADAR");
-			bool nradActive  = rules.count("NONRADAR") && rules.at("NONRADAR");
-			// OpenPopupList / AddPopupListElement live on CPlugIn, so
-			// invoke them through the plugin pointer (the same pattern
-			// the tag-function popups use in vSIDPlugin::OnFunctionCall).
+			// Stash the target ICAO for the callback. ES's popup
+			// element callback only surfaces the element LABEL as
+			// sItemString (sString1 in the API) — sString2 is not
+			// passed through — so we can't smuggle the ICAO in the
+			// element itself. Since only one mode popup can be open
+			// at a time, a single member on the plugin is enough.
+			sharedPlugin->modePopupTarget = icao;
+			// OpenPopupList / AddPopupListElement live on CPlugIn.
 			sharedPlugin->OpenPopupList(Area, ("Mode - " + icao).c_str(), 1);
-			std::string radarLabel = std::string(radarActive ? "* " : "  ") + "RADAR";
-			std::string nradLabel  = std::string(nradActive  ? "* " : "  ") + "NON-RADAR";
-			// value strings carry the target airport so the popup
-			// callback in the plugin can act on the right ICAO
-			std::string radarVal = icao + "|RADAR";
-			std::string nradVal  = icao + "|NON-RADAR";
-			sharedPlugin->AddPopupListElement(radarLabel.c_str(), radarVal.c_str(), TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
-			sharedPlugin->AddPopupListElement(nradLabel.c_str(),  nradVal.c_str(),  TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+			// Labels must be the literal strings the callback expects,
+			// because ES passes the label back as sItemString. Use the
+			// Checked param to mark the active mode with a check box
+			// so users still see which one is current.
+			sharedPlugin->AddPopupListElement(
+				"RADAR", "RADAR", TAG_FUNC_VSID_MODEMENU, false,
+				radarActive ? EuroScopePlugIn::POPUP_ELEMENT_CHECKED
+				            : EuroScopePlugIn::POPUP_ELEMENT_UNCHECKED,
+				false, false);
+			sharedPlugin->AddPopupListElement(
+				"NON-RADAR", "NON-RADAR", TAG_FUNC_VSID_MODEMENU, false,
+				radarActive ? EuroScopePlugIn::POPUP_ELEMENT_UNCHECKED
+				            : EuroScopePlugIn::POPUP_ELEMENT_CHECKED,
+				false, false);
 		}
 		return;
 	}
