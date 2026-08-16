@@ -17,7 +17,7 @@
         "rwyNotSet": {"r": 255, "g": 255, "b": 255},
         "rwySet": {"r": 0, "g": 255, "b": 0},
         "notDepRwySet": {"r": 230, "g": 230, "b": 60},
-        "squawkSet": {"r": 255, "g": 255, "b": 255},
+        "squawkSet": {"r": 111, "g": 153, "b": 110},
         "squawkNotSet": {"r": 230, "g": 230, "b": 60},
         "requestNeutral": {"r": 128, "g": 128, "b": 128},
         "requestCaution":  {"r": 230, "g": 230, "b": 60},
