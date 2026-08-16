@@ -579,15 +579,18 @@ void vsid::Display::OnClickScreenObject(int ObjectType, const char* sObjectId, P
 			auto& rules = it->second.customRules;
 			bool radarActive = rules.count("RADAR") && rules.at("RADAR");
 			bool nradActive  = rules.count("NONRADAR") && rules.at("NONRADAR");
-			this->OpenPopupList(Area, ("Mode - " + icao).c_str(), 1);
+			// OpenPopupList / AddPopupListElement live on CPlugIn, so
+			// invoke them through the plugin pointer (the same pattern
+			// the tag-function popups use in vSIDPlugin::OnFunctionCall).
+			sharedPlugin->OpenPopupList(Area, ("Mode - " + icao).c_str(), 1);
 			std::string radarLabel = std::string(radarActive ? "* " : "  ") + "RADAR";
 			std::string nradLabel  = std::string(nradActive  ? "* " : "  ") + "NON-RADAR";
 			// value strings carry the target airport so the popup
 			// callback in the plugin can act on the right ICAO
 			std::string radarVal = icao + "|RADAR";
 			std::string nradVal  = icao + "|NON-RADAR";
-			this->AddPopupListElement(radarLabel.c_str(), radarVal.c_str(), TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
-			this->AddPopupListElement(nradLabel.c_str(),  nradVal.c_str(),  TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+			sharedPlugin->AddPopupListElement(radarLabel.c_str(), radarVal.c_str(), TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+			sharedPlugin->AddPopupListElement(nradLabel.c_str(),  nradVal.c_str(),  TAG_FUNC_VSID_MODEMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
 		}
 		return;
 	}
