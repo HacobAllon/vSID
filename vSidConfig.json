@@ -1,7 +1,7 @@
 {
     "airportConfigs": "../vSID Airportconfig",
     "preferTopsky": true,
-    "esePath": "../../../../",
+    "esePath": "auto",
     "colors": {
         "sidSuggestion": {"r": 111, "g": 153, "b": 110},
         "suggestedSidSet": {"r": 111, "g": 153, "b": 110},

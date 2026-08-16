@@ -1670,16 +1670,64 @@ void vsid::VSIDPlugin::loadEse()
 	DWORD len = GetModuleFileNameA((HINSTANCE)&__ImageBase, pathBuffer.data(), MAX_PATH);
 	pathBuffer.resize(len);
 
-	std::filesystem::path basePath = pathBuffer;
-	basePath.remove_filename();
+	std::filesystem::path dllDir = pathBuffer;
+	dllDir.remove_filename();
 
 	std::string esePath = vSidConfig.at("esePath");
-	basePath.append(esePath);
+	std::filesystem::path basePath;
+
+	// Auto-discovery mode: esePath == "auto" (or empty). Walk upward
+	// from the DLL directory looking for either an "RPHI" folder that
+	// contains at least one .ese, or an ancestor directory that itself
+	// contains a .ese. First hit wins. This lets users drop the plugin
+	// into an arbitrarily-named parent folder without hand-editing the
+	// path each time. Capped at 10 ancestors so a bad install doesn't
+	// walk the whole drive.
+	auto dirHasEse = [](const std::filesystem::path& dir) -> bool
+	{
+		std::error_code ec;
+		if (!std::filesystem::is_directory(dir, ec)) return false;
+		for (auto& e : std::filesystem::directory_iterator(dir, ec))
+		{
+			if (!e.is_directory() && e.path().extension() == ".ese") return true;
+		}
+		return false;
+	};
+
+	if (esePath == "auto" || esePath.empty())
+	{
+		std::filesystem::path probe = dllDir;
+		for (int i = 0; i < 10 && !probe.empty(); ++i)
+		{
+			std::filesystem::path rphi = probe / "RPHI";
+			if (dirHasEse(rphi))       { basePath = rphi;  break; }
+			if (dirHasEse(probe))      { basePath = probe; break; }
+			if (!probe.has_parent_path() || probe.parent_path() == probe) break;
+			probe = probe.parent_path();
+		}
+
+		if (basePath.empty())
+		{
+			vsid::Logger::log(LogLevel::Error, std::format(
+				"esePath=\"auto\" but no .ese file found in any RPHI/ or ancestor "
+				"directory above [{}]. Set esePath in vSidConfig.json to a relative "
+				"path pointing at your profile folder as a fallback.", dllDir.string()));
+			return;
+		}
+
+		vsid::Logger::log(LogLevel::Info, std::format("Auto-detected .ese directory: [{}]", basePath.string()));
+	}
+	else
+	{
+		basePath = dllDir;
+		basePath.append(esePath);
+	}
+
 	basePath = basePath.lexically_normal();
 	basePath.make_preferred();
 
 	std::vector<std::filesystem::path> eseFileNames;
-		
+
 	try
 	{
 		for (const std::filesystem::path& entry : std::filesystem::directory_iterator(basePath))
