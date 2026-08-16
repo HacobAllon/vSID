@@ -2004,53 +2004,73 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 		if (rules.count("NONRADAR")) rules["NONRADAR"] = !radar;
 		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode -> {}", targetIcao, radar ? "RADAR" : "NON-RADAR"));
 
-		// Refresh SID SUGGESTIONS for flights on this airport under the
-		// newly-active rule set. Two design points worth being explicit
-		// about:
+		// Mirrors the built-in `.vsid rule` command's re-process pattern
+		// (see the rulesChanged block below), with our two protections
+		// stacked on top:
 		//
-		//   * We do NOT erase from `processed`. Erasing wipes atcRWY /
-		//     request state, and on the next processFlightplan the
-		//     plugin has no memory of the controller's runway choice —
-		//     so in auto-mode airports it re-picks a SID by priority
-		//     alone, which can land on a different runway than the
-		//     strip's runway column still shows. That's the "06 with
-		//     BUCAL_V (rwy 13) initial 3000ft" mismatch we saw.
+		//   Protected  = ES clearance flag set  OR  transponder squawking
+		//                the assigned code. Flight stays fully as-is —
+		//                its suggestion is refreshed via checkOnly=true
+		//                (so the tag colour re-evaluates for the new
+		//                mode) but no route / CFL / rwy is ever written.
 		//
-		//   * We call processFlightplan(..., checkOnly=true) — the
-		//     same call the built-in `.vsid rule` command uses on rule
-		//     changes (see the rulesChanged block below). checkOnly
-		//     guarantees no SetRoute / SetClearedAltitude: only the
-		//     .sid / .customSid fields in the cache are refreshed, so
-		//     the tag suggestion updates without touching the strip's
-		//     assigned route, CFL, or runway.
+		//   Auto+un-protected = for airports in auto-mode, we erase the
+		//                cache entry AFTER saving fplnInfo. The saved
+		//                info is restored by processFlightplan on the
+		//                next tick (via restoreFplnInfo, see
+		//                vSIDPlugin.cpp:1153) so atcRWY / request state
+		//                is preserved — the "06 with rwy-13 SID"
+		//                state-loss bug from the earlier plain erase()
+		//                stays fixed. Because auto is on, the next
+		//                OnGetTagItem calls processFlightplan with
+		//                checkOnly=false → the new-mode SID is picked
+		//                and SetRoute/SetClearedAltitude run for real.
 		//
-		// Protection still applies for cleared flights: skip entirely
-		// when either the ES clearance flag is set OR the transponder
-		// is squawking the assigned code. Those flights don't even get
-		// their suggestion recomputed — nothing about their tag or
-		// strip changes on a mode flip.
-		int protectedCount = 0, refreshedCount = 0;
+		//   Non-auto un-protected = suggestion refresh only. Controller
+		//                writes the new SID via the SIDs menu when they
+		//                want it applied.
+		bool aptAuto = this->activeAirports[targetIcao].settings["auto"];
+		int protectedCount = 0, refreshedCount = 0, reassignedCount = 0;
 		for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
 		{
 			if (std::string(fp.GetFlightPlanData().GetOrigin()) != targetIcao) continue;
 
+			std::string callsign = fp.GetCallsign();
 			std::string assignedSq = fp.GetControllerAssignedData().GetSquawk();
 			std::string pilotSq    = fp.GetCorrelatedRadarTarget().GetPosition().GetSquawk();
 			bool squawkOk = !assignedSq.empty() && assignedSq == pilotSq;
-
-			if (fp.GetClearenceFlag() || squawkOk)
-			{
-				++protectedCount;
-				continue;
-			}
+			bool protectedFp = fp.GetClearenceFlag() || squawkOk;
 
 			auto atcBlock = vsid::fplnhelper::getAtcBlock(fp);
-			if (!atcBlock.second.empty()) this->processFlightplan(fp, true, atcBlock.second);
-			else                          this->processFlightplan(fp, true);
-			++refreshedCount;
+
+			if (protectedFp)
+			{
+				// Refresh suggestion only (checkOnly=true) — SID colour
+				// re-evaluates for the new mode but nothing is written.
+				if (!atcBlock.second.empty()) this->processFlightplan(fp, true, atcBlock.second);
+				else                          this->processFlightplan(fp, true);
+				++protectedCount;
+			}
+			else if (aptAuto && this->processed.contains(callsign))
+			{
+				// Save state (atcRWY, request, etc.), then erase so the
+				// next OnGetTagItem call re-runs processFlightplan with
+				// checkOnly=false and actually rewrites route+CFL to
+				// the new mode's SID family.
+				vsid::fplnhelper::saveFplnInfo(callsign, this->processed[callsign], this->savedFplnInfo);
+				this->processed.erase(callsign);
+				++reassignedCount;
+			}
+			else
+			{
+				if (!atcBlock.second.empty()) this->processFlightplan(fp, true, atcBlock.second);
+				else                          this->processFlightplan(fp, true);
+				++refreshedCount;
+			}
 		}
-		vsid::Logger::log(LogLevel::Info, std::format("[{}] Mode flip: {} flight(s) suggestion-refreshed, {} protected (cleared or squawking assigned code)",
-			targetIcao, refreshedCount, protectedCount));
+		vsid::Logger::log(LogLevel::Info, std::format(
+			"[{}] Mode flip: {} re-assigned (auto), {} refreshed (non-auto), {} protected (cleared or squawking assigned code)",
+			targetIcao, reassignedCount, refreshedCount, protectedCount));
 		return;
 	}
 
@@ -2902,7 +2922,7 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 						this->processed[callsign].customSid.empty())
 					)
 				{
-					if (this->processed[callsign].validEquip && this->processed[callsign].sidWpt == "") strcpy_s(sItemString, 16, "MANUAL");
+					if (this->processed[callsign].validEquip && this->processed[callsign].sidWpt == "") strcpy_s(sItemString, 16, "FLT PLN");
 					else if (this->processed[callsign].validEquip && this->processed[callsign].sidWpt != "") strcpy_s(sItemString, 16, this->processed[callsign].sidWpt.c_str());
 					else if (!this->processed[callsign].validEquip) strcpy_s(sItemString, 16, "EQUIP");
 				}
