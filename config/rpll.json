@@ -743,6 +743,7 @@
             "RDVxALPA": {
                 "S": {
                     "": {
+                        "wpt": "ALPAS",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -752,6 +753,7 @@
             "RDVxBETE": {
                 "L": {
                     "": {
+                        "wpt": "BETEL",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -761,6 +763,7 @@
             "RDVxBUCA": {
                 "L": {
                     "": {
+                        "wpt": "BUCAL",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -770,6 +773,7 @@
             "RDVxCA": {
                 "B": {
                     "": {
+                        "wpt": "CAB",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -779,6 +783,7 @@
             "RDVxDINN": {
                 "O": {
                     "": {
+                        "wpt": "DINNO",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -788,6 +793,7 @@
             "RDVxIBAG": {
                 "O": {
                     "": {
+                        "wpt": "IBAGO",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -797,6 +803,7 @@
             "RDVxIPAT": {
                 "A": {
                     "": {
+                        "wpt": "IPATA",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -806,6 +813,7 @@
             "RDVxJO": {
                 "M": {
                     "": {
+                        "wpt": "JOM",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -815,6 +823,7 @@
             "RDVxLI": {
                 "P": {
                     "": {
+                        "wpt": "LIP",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -824,6 +833,7 @@
             "RDVxNATI": {
                 "B": {
                     "": {
+                        "wpt": "NATIB",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -833,6 +843,7 @@
             "RDVxOLIV": {
                 "A": {
                     "": {
+                        "wpt": "OLIVA",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -842,6 +853,7 @@
             "RDVxSIMB": {
                 "O": {
                     "": {
+                        "wpt": "SIMBO",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -851,6 +863,7 @@
             "RDVxSIRC": {
                 "A": {
                     "": {
+                        "wpt": "SIRCA",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -860,6 +873,7 @@
             "RDVxTIMO": {
                 "N": {
                     "": {
+                        "wpt": "TIMON",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
@@ -869,6 +883,7 @@
             "RDVxVERD": {
                 "E": {
                     "": {
+                        "wpt": "VERDE",
                         "rwy": "06,13,24,31",
                         "prio": 1,
                         "customRule": "RADAR"
