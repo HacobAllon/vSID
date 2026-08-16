@@ -2822,57 +2822,64 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				std::string sidName = this->processed[callsign].sid.name();
 				std::string customSidName = this->processed[callsign].customSid.name();		
 
-				// set sid item color
+				// SID column color rule (simplified per user request):
+				//   * sidHighlight  — SID flagged as attention (kept; orthogonal)
+				//   * sidSuggestion (sage) — pre-clearance / unset state
+				//   * suggestedSidSet (sage) — set SID exists in the airport
+				//                              and matches the flight's filed
+				//                              exit waypoint (i.e. is a legit
+				//                              SID for this route), regardless
+				//                              of whether it's the plugin's
+				//                              #1 prio pick
+				//   * noSid (red) — set SID is not a valid SID for the filed
+				//                   route, OR IFR flight has no valid SID at
+				//                   all in the airport's active rule set
+				// customSidSuggestion / customSidSet ("orange") are deliberately
+				// not used any more — controllers get one green if the SID
+				// belongs on this route, one red if it doesn't.
 
-				if (((blockSid == fplnData.GetOrigin() &&
-					this->processed[callsign].atcRWY &&
-					this->processed[callsign].customSid.empty()) ||
-					(blockSid == "" &&
-						this->processed[callsign].sid.empty() &&
-						this->processed[callsign].customSid.empty())) &&
-					std::string(FlightPlan.GetFlightPlanData().GetPlanType()) == "I"
-					)
-				{
-					*pRGB = this->configParser.getColor("noSid");
-				}
-				else if ((blockSid == "" ||
-					blockSid == fplnData.GetOrigin()) &&
-					((this->processed[callsign].customSid.empty() ||
-						this->processed[callsign].sid == this->processed[callsign].customSid) ||
-						((std::string(FlightPlan.GetFlightPlanData().GetPlanType()) == "V" &&
-							std::string(sItemString) == "VFR")
-							))
-					)
-				{
-					*pRGB = this->configParser.getColor("sidSuggestion");
-				}
-				else if (blockSid != "" &&
-					blockSid == fplnData.GetOrigin() &&
-					!this->processed[callsign].customSid.empty() &&
-					this->processed[callsign].sid != this->processed[callsign].customSid
-					)
-				{
-					*pRGB = this->configParser.getColor("customSidSuggestion");
-				}
-				else if (blockSid != "" && ((blockSid == sidName && this->processed[callsign].sid.sidHighlight) ||
+				if (blockSid != "" && ((blockSid == sidName && this->processed[callsign].sid.sidHighlight) ||
 					(blockSid == customSidName && this->processed[callsign].customSid.sidHighlight)))
 				{
 					*pRGB = this->configParser.getColor("sidHighlight");
 				}
-				else if ((blockSid != "" &&
-					blockSid != fplnData.GetOrigin() &&
-					blockSid == customSidName &&
-					this->processed[callsign].sid != this->processed[callsign].customSid) ||
-					blockSid != sidName
-					)
+				else if (blockSid == "" || blockSid == fplnData.GetOrigin())
 				{
-					*pRGB = this->configParser.getColor("customSidSet");
+					// unset / clean / pre-clearance state
+					if (std::string(fplnData.GetPlanType()) == "I" &&
+					    this->processed[callsign].sid.empty() &&
+					    this->processed[callsign].customSid.empty())
+					{
+						// IFR with no valid SID candidate at all → red
+						*pRGB = this->configParser.getColor("noSid");
+					}
+					else
+					{
+						*pRGB = this->configParser.getColor("sidSuggestion");
+					}
 				}
-				else if (blockSid != "" && blockSid == sidName)
+				else
 				{
-					*pRGB = this->configParser.getColor("suggestedSidSet");
+					// A specific SID is set on the strip. Sage iff it's a
+					// legit SID for this flight's filed exit waypoint;
+					// otherwise red.
+					const std::string& filedWpt = this->processed[callsign].sidWpt;
+					bool matchesRoute = false;
+					if (!filedWpt.empty())
+					{
+						for (const auto& sid : this->activeAirports[adep].sids)
+						{
+							if (sid.name() == blockSid &&
+							    (sid.waypoint == filedWpt || sid.waypoint == "XXX"))
+							{
+								matchesRoute = true;
+								break;
+							}
+						}
+					}
+					*pRGB = matchesRoute ? this->configParser.getColor("suggestedSidSet")
+					                     : this->configParser.getColor("noSid");
 				}
-				else *pRGB = RGB(140, 140, 60);
 
 				// set sid item text
 
