@@ -35,6 +35,12 @@ namespace vsid
 	struct Fpln
 	{
 		bool atcRWY = false;
+		// Last atcBlock runway we saw for this flight, so
+		// OnFlightPlanFlightPlanDataUpdate can detect a controller-driven
+		// runway change (e.g. 06 → 31) and force a SID re-pick, even
+		// when the currently-assigned SID happens to cover the new rwy
+		// (multi-rwy SIDs like RDVxBETEL would otherwise linger).
+		std::string atcRwyLast = "";
 		bool noFplnUpdate = false;
 		bool remarkChecked = false;
 		vsid::Sid sid = {};

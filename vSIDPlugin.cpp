@@ -2840,9 +2840,18 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				}
 
 				std::string sidName = this->processed[callsign].sid.name();
-				std::string customSidName = this->processed[callsign].customSid.name();		
+				std::string customSidName = this->processed[callsign].customSid.name();
+
+				// Runway-size override: RPLL rwy 13 (2258 m) can't accept
+				// widebodies. Any Heavy (H) or Super (J) aircraft assigned
+				// to rwy 13 lights the SID column red regardless of which
+				// SID is set — the SID isn't the problem, the runway is.
+				// A320 / A321 / B737 (all Medium wake) are unaffected.
+				char wtc = fplnData.GetAircraftWtc();
+				bool tooBigForRwy = (blockRwy == "13" && (wtc == 'H' || wtc == 'J'));
 
 				// SID column color rule (simplified per user request):
+				//   * override      — rwy 13 + Heavy/Super → red (see above)
 				//   * sidHighlight  — SID flagged as attention (kept; orthogonal)
 				//   * sidSuggestion (sage) — pre-clearance / unset state
 				//   * suggestedSidSet (sage) — set SID exists in the airport
@@ -2858,8 +2867,17 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 				// not used any more — controllers get one green if the SID
 				// belongs on this route, one red if it doesn't.
 
-				if (blockSid != "" && ((blockSid == sidName && this->processed[callsign].sid.sidHighlight) ||
-					(blockSid == customSidName && this->processed[callsign].customSid.sidHighlight)))
+				// SID name comparison is case-insensitive: some tools /
+				// network sync normalize route strings to upper case, so
+				// a config-defined "RDVxBETEL" can arrive as "RDVXBETEL"
+				// through blockSid. Case-sensitive equality would then
+				// falsely flag every RDVx SID as a mismatch.
+				if (tooBigForRwy)
+				{
+					*pRGB = this->configParser.getColor("noSid");
+				}
+				else if (blockSid != "" && ((vsid::utils::svEqualCi(blockSid, sidName) && this->processed[callsign].sid.sidHighlight) ||
+					(vsid::utils::svEqualCi(blockSid, customSidName) && this->processed[callsign].customSid.sidHighlight)))
 				{
 					*pRGB = this->configParser.getColor("sidHighlight");
 				}
@@ -2887,9 +2905,13 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 					bool matchesRoute = false;
 					if (!filedWpt.empty())
 					{
+						// Case-insensitive on SID name for the same reason
+						// as sidHighlight above (blockSid may be upper-cased
+						// by an upstream tool while sid.name() preserves
+						// config casing like "RDVxCAB").
 						for (const auto& sid : this->activeAirports[adep].sids)
 						{
-							if (sid.name() == blockSid &&
+							if (vsid::utils::svEqualCi(sid.name(), blockSid) &&
 							    (sid.waypoint == filedWpt || sid.waypoint == "XXX"))
 							{
 								matchesRoute = true;
@@ -4796,6 +4818,52 @@ void vsid::VSIDPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlight
 		if (filedRoute.size() > 0)
 		{
 			std::pair<std::string, std::string> atcBlock = vsid::fplnhelper::getAtcBlock(FlightPlan);
+
+			// Runway-change detection. When atcBlock.second differs from
+			// the last runway we recorded for this flight, the controller
+			// (or another vSID user) has re-assigned the runway — force a
+			// SID re-pick. Without this, a multi-runway SID that happens
+			// to cover the new rwy (RDVxBETEL covers 06,13,24,31, HARBO1
+			// covers 31 only) would linger past a 06→31 change instead of
+			// swapping to the runway-specific pick.
+			//
+			// Same protection tier as the mode toggle: clearance flag set
+			// OR squawking the assigned code → skip entirely. Otherwise
+			// erase (with saveFplnInfo so atcRWY/request state restores)
+			// and let the next OnGetTagItem tick call processFlightplan
+			// with checkOnly = !auto, which writes route+CFL for auto-mode
+			// airports and refreshes the suggestion for non-auto.
+			if (this->activeAirports.contains(adep) &&
+			    !atcBlock.second.empty() &&
+			    this->processed.contains(callsign) &&
+			    !this->processed[callsign].atcRwyLast.empty() &&
+			    this->processed[callsign].atcRwyLast != atcBlock.second)
+			{
+				std::string assignedSq = FlightPlan.GetControllerAssignedData().GetSquawk();
+				std::string pilotSq    = FlightPlan.GetCorrelatedRadarTarget().GetPosition().GetSquawk();
+				bool squawkOk  = !assignedSq.empty() && assignedSq == pilotSq;
+				bool protectedFp = FlightPlan.GetClearenceFlag() || squawkOk;
+
+				if (!protectedFp)
+				{
+					vsid::Logger::log(LogLevel::Info, std::format(
+						"[{}] Rwy change {} → {} — re-picking SID",
+						callsign, this->processed[callsign].atcRwyLast, atcBlock.second));
+
+					this->processed[callsign].atcRwyLast = atcBlock.second;
+					vsid::fplnhelper::saveFplnInfo(callsign, this->processed[callsign], this->savedFplnInfo);
+					this->processed.erase(callsign);
+					return;
+				}
+			}
+			// Keep the tracker current even when we don't act, so the
+			// FIRST rwy assignment on a fresh flight doesn't get treated
+			// as a change on the next update.
+			if (this->processed.contains(callsign) && !atcBlock.second.empty())
+			{
+				this->processed[callsign].atcRwyLast = atcBlock.second;
+			}
+
 			if (this->activeAirports.contains(adep) && this->activeAirports[adep].settings["auto"] &&
 				atcBlock.first == "")
 			{
