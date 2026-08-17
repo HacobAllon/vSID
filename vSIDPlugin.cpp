@@ -2020,12 +2020,23 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 			return;
 		}
 
-		// AUTO row: toggle the airport's auto-mode setting. Does not
-		// touch RADAR/NONRADAR customRules and does not re-process any
-		// flights — flipping auto ON simply means the NEXT OnGetTagItem
-		// tick will run processFlightplan(checkOnly=false) for
-		// un-processed flights and start writing SIDs; flipping OFF
-		// leaves everyone as-is. Same behaviour as ".vsid auto <icao>".
+		// AUTO row: toggle the airport's auto-mode setting.
+		//
+		// Turning ON: also force a re-assign pass on un-protected
+		// flights, otherwise nothing observable happens — the flights
+		// already in `processed` were computed with checkOnly=true
+		// (from when auto was OFF), so their SID suggestion exists in
+		// the tag column but SetRoute / SetClearedAltitude never ran.
+		// Same erase+saveFplnInfo pattern the mode toggle uses; next
+		// OnGetTagItem tick calls processFlightplan(checkOnly=false)
+		// which writes route + CFL for real.
+		//
+		// Turning OFF: leave everyone as-is. Anything already written
+		// to strips stays written; new arrivals just get a checkOnly
+		// suggestion until controller clicks to apply.
+		//
+		// Protection is unchanged: clearance flag OR squawk match →
+		// flight is never touched, no matter what AUTO says.
 		if (pick == "AUTO")
 		{
 			auto& settings = this->activeAirports[targetIcao].settings;
@@ -2033,6 +2044,31 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 			settings["auto"] = newState;
 			vsid::Logger::log(LogLevel::Info, std::format(
 				"[{}] Auto mode -> {}", targetIcao, newState ? "ON" : "OFF"));
+
+			if (newState)
+			{
+				int protectedCount = 0, reassignedCount = 0;
+				for (EuroScopePlugIn::CFlightPlan fp = FlightPlanSelectFirst(); fp.IsValid(); fp = FlightPlanSelectNext(fp))
+				{
+					if (std::string(fp.GetFlightPlanData().GetOrigin()) != targetIcao) continue;
+
+					std::string cs = fp.GetCallsign();
+					std::string assignedSq = fp.GetControllerAssignedData().GetSquawk();
+					std::string pilotSq    = fp.GetCorrelatedRadarTarget().GetPosition().GetSquawk();
+					bool squawkOk = !assignedSq.empty() && assignedSq == pilotSq;
+					if (fp.GetClearenceFlag() || squawkOk) { ++protectedCount; continue; }
+
+					if (this->processed.contains(cs))
+					{
+						vsid::fplnhelper::saveFplnInfo(cs, this->processed[cs], this->savedFplnInfo);
+						this->processed.erase(cs);
+					}
+					++reassignedCount;
+				}
+				vsid::Logger::log(LogLevel::Info, std::format(
+					"[{}] Auto ON: {} re-assigned, {} protected (cleared or squawking assigned code)",
+					targetIcao, reassignedCount, protectedCount));
+			}
 			return;
 		}
 
