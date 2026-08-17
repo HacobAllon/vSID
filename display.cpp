@@ -95,6 +95,27 @@ void vsid::Display::OnRefresh(HDC hDC, int Phase)
 			RECT btnRect;
 			const int btnW = 70;
 			const int btnH = 22;
+			// Safety net: if the stored drag position would put the
+			// button off-screen (e.g. persisted from a session with a
+			// larger ASR, a different resolution, or a previous drag
+			// gone wrong), clear it so we anchor to the default top-
+			// right corner. Without this, the button silently renders
+			// where nobody can see or grab it.
+			if (this->modeBtnX >= 0 && this->modeBtnY >= 0)
+			{
+				bool offscreen = this->modeBtnX < rArea.left ||
+				                 this->modeBtnY < rArea.top  ||
+				                 this->modeBtnX + btnW > rArea.right  ||
+				                 this->modeBtnY + btnH > rArea.bottom;
+				if (offscreen)
+				{
+					this->modeBtnX = -1;
+					this->modeBtnY = -1;
+					// Clear the ASR values too so the reset persists.
+					this->SaveDataToAsr("vsid_modebtn_x", "vSID mode button X", "");
+					this->SaveDataToAsr("vsid_modebtn_y", "vSID mode button Y", "");
+				}
+			}
 			// modeBtnX/Y default to -1 (unset) — anchor to top-right of
 			// the radar area. Once the user drags it, OnMoveScreenObject
 			// stores the top-left corner and we render there instead.
