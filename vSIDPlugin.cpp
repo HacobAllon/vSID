@@ -2020,6 +2020,22 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 			return;
 		}
 
+		// AUTO row: toggle the airport's auto-mode setting. Does not
+		// touch RADAR/NONRADAR customRules and does not re-process any
+		// flights — flipping auto ON simply means the NEXT OnGetTagItem
+		// tick will run processFlightplan(checkOnly=false) for
+		// un-processed flights and start writing SIDs; flipping OFF
+		// leaves everyone as-is. Same behaviour as ".vsid auto <icao>".
+		if (pick == "AUTO")
+		{
+			auto& settings = this->activeAirports[targetIcao].settings;
+			bool newState = !(settings.count("auto") && settings["auto"]);
+			settings["auto"] = newState;
+			vsid::Logger::log(LogLevel::Info, std::format(
+				"[{}] Auto mode -> {}", targetIcao, newState ? "ON" : "OFF"));
+			return;
+		}
+
 		bool radar = (pick == "RADAR");
 		auto& rules = this->activeAirports[targetIcao].customRules;
 		if (rules.count("RADAR"))    rules["RADAR"]    = radar;

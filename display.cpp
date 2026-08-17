@@ -642,6 +642,16 @@ void vsid::Display::OnClickScreenObject(int ObjectType, const char* sObjectId, P
 				radarActive ? EuroScopePlugIn::POPUP_ELEMENT_UNCHECKED
 				            : EuroScopePlugIn::POPUP_ELEMENT_CHECKED,
 				false, false);
+			// Auto mode row — same callback (differentiated by the label
+			// on the plugin side). Fixed=false: some ES popup layouts
+			// silently drop fixed elements, so we render it as a normal
+			// scrollable row to guarantee it shows.
+			bool autoActive = it->second.settings.count("auto") && it->second.settings.at("auto");
+			sharedPlugin->AddPopupListElement(
+				"AUTO", "AUTO", TAG_FUNC_VSID_MODEMENU, false,
+				autoActive ? EuroScopePlugIn::POPUP_ELEMENT_CHECKED
+				           : EuroScopePlugIn::POPUP_ELEMENT_UNCHECKED,
+				false, false);
 		}
 		return;
 	}

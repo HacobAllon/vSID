@@ -79,9 +79,6 @@
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "equip": {
-                            "NON-RNAV": true
-                        },
                         "prio": 2,
                         "customRule": "NONRADAR"
                     }
@@ -412,9 +409,6 @@
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "equip": {
-                            "NON-RNAV": true
-                        },
                         "prio": 2,
                         "customRule": "NONRADAR"
                     }
@@ -573,9 +567,6 @@
                     "2": {
                         "rwy": "13",
                         "initial": 3000,
-                        "equip": {
-                            "NON-RNAV": true
-                        },
                         "prio": 2,
                         "customRule": "NONRADAR"
                     }
