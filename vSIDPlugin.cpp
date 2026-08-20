@@ -3698,6 +3698,21 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 			}
 		}
 	}
+	else if (ItemCode == TAG_ITEM_VSID_SIDS)
+	{
+		// Airport not managed by vSID (only RPLL is configured). Without this,
+		// vSID's SID column renders blank at every other field, hiding the
+		// real SID and leaving the controller nothing to see/assign. Mirror
+		// EuroScope's own SID here instead. No initial climb is set for these
+		// airports — only configured airports (RPLL) get a CFL.
+		const std::string esSid = fplnData.GetSidName();
+		if (!esSid.empty())
+		{
+			*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+			*pRGB = RGB(160, 160, 160);
+			strcpy_s(sItemString, 16, esSid.c_str());
+		}
+	}
 
 	if (ItemCode == TAG_ITEM_VSID_CTLF)
 	{
