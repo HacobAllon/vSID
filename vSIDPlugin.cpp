@@ -3709,7 +3709,7 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 		if (!esSid.empty())
 		{
 			*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
-			*pRGB = RGB(160, 160, 160);
+			*pRGB = this->configParser.getColor("suggestedSidSet");
 			strcpy_s(sItemString, 16, esSid.c_str());
 		}
 	}
@@ -3720,7 +3720,7 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 		// altitude (as a 3-digit FL, matching the managed formatting) so the
 		// column shows the real CFL instead of a permanent "---".
 		*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
-		*pRGB = RGB(160, 160, 160);
+		*pRGB = this->configParser.getColor("suggestedClmb");
 		const int cfl = FlightPlan.GetClearedAltitude();
 		if (cfl <= 0) strcpy_s(sItemString, 16, "---");
 		else
