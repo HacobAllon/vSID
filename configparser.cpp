@@ -621,12 +621,16 @@ void vsid::ConfigParser::loadAirportConfig(std::map<std::string, vsid::Airport, 
 						if (savedSettings.contains(icao))
 						{
 							aptInfo.settings = savedSettings[icao];
+							// Auto is ON by default now. A settings blob saved
+							// before this change may lack the "auto" key — enable
+							// it rather than letting operator[] default to false.
+							if (!aptInfo.settings.count("auto")) aptInfo.settings["auto"] = true;
 						}
 						else
 						{
 							aptInfo.settings = { {"lvp", false},
 													{"time", this->parsedConfig.at(icao).value("timeMode", false)},
-													{"auto", false}
+													{"auto", true}
 							};
 						}
 

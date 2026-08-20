@@ -43,6 +43,10 @@ namespace vsid
 		std::string atcRwyLast = "";
 		bool noFplnUpdate = false;
 		bool remarkChecked = false;
+		// Set true when a controller manually picks a SID from the vSID SIDs
+		// menu. While set, auto mode must NOT re-assign this flight's SID (it
+		// stays on the manual choice). Cleared by "Set/Reset suggested SID".
+		bool manualLock = false;
 		vsid::Sid sid = {};
 		vsid::Sid customSid = {};
 		std::string sidWpt = "";

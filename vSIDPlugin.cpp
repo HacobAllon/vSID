@@ -2332,6 +2332,10 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 					vsid::Logger::log(LogLevel::Debug, std::format("[{}] Calling manual SID with rwy [{}]", callsign, depRWY), DebugLevel::Sid);
 
 					this->processFlightplan(fpln, false, depRWY, validDepartures[sItemString]);
+
+					// Controller made a manual choice — lock it so auto mode
+					// stops re-assigning this flight's SID.
+					if (this->processed.contains(callsign)) this->processed[callsign].manualLock = true;
 				}
 				else
 				{
@@ -2345,6 +2349,9 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 		if (FunctionId == TAG_FUNC_VSID_SIDS_AUTO)
 		{
 			if (!this->activeAirports.contains(adep)) return;
+
+			// Reset-to-suggested re-enables auto for this flight.
+			if (this->processed.contains(callsign)) this->processed[callsign].manualLock = false;
 
 			std::vector<std::string> filedRoute = vsid::utils::split(fplnData.GetRoute(), ' ');
 			std::pair<std::string, std::string> atcBlock = vsid::fplnhelper::getAtcBlock(fpln);
@@ -5040,7 +5047,8 @@ void vsid::VSIDPlugin::OnFlightPlanFlightPlanDataUpdate(EuroScopePlugIn::CFlight
 			}
 
 			if (this->activeAirports.contains(adep) && this->activeAirports[adep].settings["auto"] &&
-				atcBlock.first == "")
+				atcBlock.first == "" &&
+				!(this->processed.contains(callsign) && this->processed[callsign].manualLock))
 			{
 				vsid::fplnhelper::saveFplnInfo(callsign, this->processed[callsign], this->savedFplnInfo);
 				this->processed.erase(callsign);
