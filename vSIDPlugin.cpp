@@ -2514,7 +2514,37 @@ void vsid::VSIDPlugin::OnFunctionCall(int FunctionId, const char * sItemString, 
 
 		if (FunctionId == TAG_FUNC_VSID_CLMBMENU)
 		{
-			if (!this->activeAirports.contains(adep)) return;
+			if (!this->activeAirports.contains(adep))
+			{
+				// Unmanaged airport: vSID has no climb config here, but the
+				// controller still needs to set/change the CFL (otherwise the
+				// column is stuck on the requested altitude). Offer a generic
+				// list from 2000 ft up to the flight's final altitude in
+				// 1000 ft steps and apply the pick. vSID doesn't AUTO-assign a
+				// climb at these airports — this is manual only.
+				auto fmt3u = [](int hundreds) {
+					char b[8]; snprintf(b, sizeof(b), "%03d", hundreds); return std::string(b);
+				};
+				std::map<std::string, int> altU;
+				int maxAlt = fplnData.GetFinalAltitude();
+				if (maxAlt < 2000) maxAlt = 24000;   // sane cap if RFL unknown
+				for (int i = 2000; i <= maxAlt; i += 1000) altU[fmt3u(i / 100)] = i;
+
+				if (strlen(sItemString) == 0)
+				{
+					this->OpenPopupList(Area, "Select Climb", 1);
+					for (auto it = altU.rbegin(); it != altU.rend(); ++it)   // high -> low
+						this->AddPopupListElement(it->first.c_str(), it->first.c_str(),
+							TAG_FUNC_VSID_CLMBMENU, false, EuroScopePlugIn::POPUP_ELEMENT_NO_CHECKBOX, false, false);
+				}
+				else if (altU.count(sItemString))
+				{
+					if (!fpln.GetControllerAssignedData().SetClearedAltitude(altU[sItemString]))
+						vsid::Logger::log(LogLevel::Error, std::format(
+							"[{}] - Failed to set cleared altitude. Code: {}", callsign, ERROR_FPLN_SETALT));
+				}
+				return;
+			}
 
 			std::map<std::string, int> alt;
 
