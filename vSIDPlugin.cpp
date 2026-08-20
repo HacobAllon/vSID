@@ -1333,7 +1333,15 @@ void vsid::VSIDPlugin::processFlightplan(EuroScopePlugIn::CFlightPlan& FlightPla
 					arrAsDep = this->activeAirports[icao].areas[area].arrAsDep;
 				}
 
-				for (const std::string& sidRwy : sidSuggestion.rwys)
+				// BUGFIX: was iterating sidSuggestion.rwys here — the normal
+				// suggestion, which is usually empty on a custom/manual apply.
+				// That left setRwy unresolved (or falling back to a runway not
+				// valid for the custom SID), so SetRoute wrote a malformed
+				// "<SID>/" (or wrong-rwy) token that EuroScope rejected: the
+				// SID never got written, never synced to other controllers,
+				// and CFL couldn't resolve a runway -> stayed "---". Use the
+				// custom suggestion's own runway list.
+				for (const std::string& sidRwy : sidCustomSuggestion.rwys)
 				{
 					if (this->activeAirports[icao].isDepRwy(sidRwy, arrAsDep))
 					{
