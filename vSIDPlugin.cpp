@@ -3713,6 +3713,23 @@ void vsid::VSIDPlugin::OnGetTagItem(EuroScopePlugIn::CFlightPlan FlightPlan, Eur
 			strcpy_s(sItemString, 16, esSid.c_str());
 		}
 	}
+	else if (ItemCode == TAG_ITEM_VSID_CLIMB)
+	{
+		// Same idea for the Initial Climb column. vSID doesn't assign a climb
+		// at unmanaged airports, but mirror the flight's actual cleared
+		// altitude (as a 3-digit FL, matching the managed formatting) so the
+		// column shows the real CFL instead of a permanent "---".
+		*pColorCode = EuroScopePlugIn::TAG_COLOR_RGB_DEFINED;
+		*pRGB = RGB(160, 160, 160);
+		const int cfl = FlightPlan.GetClearedAltitude();
+		if (cfl <= 0) strcpy_s(sItemString, 16, "---");
+		else
+		{
+			char buf[8];
+			snprintf(buf, sizeof(buf), "%03d", cfl / 100);
+			strcpy_s(sItemString, 16, buf);
+		}
+	}
 
 	if (ItemCode == TAG_ITEM_VSID_CTLF)
 	{
